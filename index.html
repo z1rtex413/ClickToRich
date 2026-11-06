@@ -4,794 +4,56 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>CLICKER</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
-body{background:#101225;color:white;font-family:Arial,sans-serif;font-size:16px}
-.app{max-width:430px;min-height:100vh;margin:auto;padding:20px 18px 100px;background:linear-gradient(180deg,#242944,#151728)}
-.header{display:flex;justify-content:space-between;align-items:flex-start}
-.brand{display:flex;flex-direction:column;gap:9px}.logo{font-size:20px;font-weight:bold}
-button{border:0;border-radius:10px;padding:11px 12px;background:#f8d45b;color:#27263b;font-weight:bold;cursor:pointer}
-button:disabled{background:#666b80;color:white}
-.skins-open{width:58px;height:58px;padding:4px;border-radius:13px;background:linear-gradient(145deg,#8b5cff,#5425c9);color:white;border:2px solid #b89aff;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;box-shadow:0 0 12px #742cff88}
-.skins-open span{font-size:24px}.skins-open small{font-size:11px}
-.level{padding:9px 13px;border-radius:20px;background:#343a59;font-size:15px;cursor:pointer}
-.page{display:none}.page.active{display:block}
-.balance-box{text-align:center;margin:30px 0 22px}.balance-title{color:#aeb5d0}.balance{margin-top:8px;color:#ffe16a;font-size:36px;font-weight:bold;white-space:nowrap}
-.hamster-wrap{display:flex;justify-content:center;align-items:center;margin:20px auto 26px}
-.hamster{width:min(78vw,310px);aspect-ratio:1;border-radius:50%;border:6px solid #692bff;background:#00113e;box-shadow:0 0 20px #742cff,0 0 40px #4c20ff99;touch-action:none;cursor:pointer;transition:transform .06s}
-.hamster.pressed{transform:scale(.96)}
-.stats{display:flex;justify-content:space-between;background:#292f4b;padding:15px 8px;border-radius:15px;gap:4px}
-.stat{text-align:center;min-width:0;flex:1}.stat small{display:block;color:#aeb5d0;margin-bottom:7px;font-size:12px}.stat strong{font-size:clamp(13px,3.5vw,17px);overflow-wrap:anywhere}
-.energy-box{margin:20px 0}.energy-info{display:flex;justify-content:space-between;margin-bottom:9px}.energy-bar{height:13px;background:#353b59;border-radius:20px;overflow:hidden}.energy-fill{height:100%;background:linear-gradient(90deg,#ffca55,#ffe78c)}
-.section-title{font-size:23px;margin:25px 0 15px}
-.upgrade{display:flex;align-items:center;justify-content:space-between;background:#292f4b;padding:14px;border-radius:15px;margin-bottom:12px;gap:10px}
-.upgrade small{display:block;color:#aeb5d0;margin-top:5px}.upgrade-icon{font-size:29px}
-.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;display:flex;justify-content:space-around;padding:11px 2px;background:#20243a;z-index:50}
-.nav-item{text-align:center;color:#b3bad2;font-size:10px;cursor:pointer;flex:1}.nav-item span{display:block;font-size:21px;margin-bottom:4px}
-.modal{position:fixed;inset:0;z-index:500;background:#000b;display:none;justify-content:center;align-items:center;padding:15px}.modal.active{display:flex}
-.window{width:100%;max-width:370px;max-height:85vh;overflow-y:auto;background:linear-gradient(180deg,#303858,#191d32);border:2px solid #7852dc;border-radius:20px;padding:18px;box-shadow:0 0 30px #672cff77}
-.window h2{margin-bottom:14px}.window input,.window select{width:100%;padding:12px;border-radius:10px;border:2px solid #7852dc;background:#17152e;color:white;font-size:16px;margin:7px 0}
-.window button{width:100%;margin-top:8px}.close{background:#484d69;color:white}
-.skin-row,.event-banner{background:#292f4b;border-radius:12px;padding:12px;margin:8px 0;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.skin-row button{width:auto;margin:0}.event-banner{display:block;text-align:center;border:1px solid #a66bff;color:#ffe16a}
-.muted{color:#b9bfd5;font-size:12px;margin-top:5px}.status{color:#aaffc9;font-size:13px;margin:9px 0;overflow-wrap:anywhere}
-.task-item{position:relative}.task-item.done:after{content:"";position:absolute;top:7px;right:7px;width:10px;height:10px;border-radius:50%;background:#ff3030}
-.popup{position:fixed;pointer-events:none;color:#ffe16a;font-size:24px;font-weight:bold;animation:rise .55s forwards;z-index:100}
-@keyframes rise{to{opacity:0;transform:translateY(-60px)}}
-.bonus-coin{position:fixed;z-index:200;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;background:linear-gradient(145deg,#ffe98a,#ffae00);border:3px solid #fff0a8;box-shadow:0 0 20px #ffdb45;cursor:pointer}
-.skin-preview{display:inline-flex;width:30px;height:30px;border-radius:8px;align-items:center;justify-content:center;margin-right:7px}
-</style>
-</head>
-<body>
-
-<div class="app">
-<header class="header">
- <div class="brand">
-  <div class="logo">CLICKER</div>
-  <button class="skins-open" onclick="openSkins()"><span>🎨</span><small>СКИНЫ</small></button>
- </div>
- <div class="level" id="secretLevel">⭐ Ур. <span id="level">1</span></div>
-</header>
-
-<div class="event-banner" id="eventBanner" style="display:none"></div>
-
-<section id="home" class="page active">
- <div class="balance-box">
-  <div class="balance-title">ТВОЙ БАЛАНС</div>
-  <div class="balance">🪙 <span id="balance">0</span></div>
- </div>
-
- <div class="upgrade" style="display:block;text-align:center">
-  <strong>🎡 ЕЖЕДНЕВНАЯ РУЛЕТКА</strong>
-  <div class="muted">Один бесплатный спин каждые 24 часа</div>
-  <div id="rouletteResult" style="font-size:18px;margin:10px">Призы: монеты, энергия и особый приз</div>
-  <button id="spinButton" onclick="spinRoulette()">КРУТИТЬ</button>
- </div>
-
- <div class="hamster-wrap">
-  <div class="hamster" id="hamster" aria-label="Нажми, чтобы заработать"></div>
- </div>
-
- <div class="stats">
-  <div class="stat"><small>За клик</small><strong id="perClick">+1</strong></div>
-  <div class="stat"><small>Доход/сек</small><strong id="income">0</strong></div>
-  <div class="stat"><small>Клики</small><strong id="clicks">0</strong></div>
- </div>
-
- <div class="energy-box">
-  <div class="energy-info">
-   <strong>⚡ Энергия</strong>
-   <strong><span id="energy">1000</span>/<span id="maxEnergy">1000</span></strong>
-  </div>
-  <div class="energy-bar"><div class="energy-fill" id="energyFill"></div></div>
- </div>
-</section>
-
-<section id="shop" class="page">
- <h2 class="section-title">🚀 Улучшения</h2>
- <div class="upgrade">
-  <div><div class="upgrade-icon">👆</div><strong>Сильный палец</strong><small>Уровень: <span id="clickLevel">1</span></small></div>
-  <button id="buyClick">🪙 <span id="clickCost">100</span></button>
- </div>
- <div class="upgrade">
-  <div><div class="upgrade-icon">⚡</div><strong>Больше энергии</strong><small>Уровень: <span id="energyLevel">1</span></small></div>
-  <button id="buyEnergy">🪙 <span id="energyCost">200</span></button>
- </div>
- <div class="upgrade">
-  <div><div class="upgrade-icon">🏭</div><strong>Автоматический доход</strong><small>Уровень: <span id="incomeLevel">0</span></small><small>+1 монета в секунду</small></div>
-  <button id="buyIncome">🪙 <span id="incomeCost">500</span></button>
- </div>
-</section>
-
-<section id="tasks" class="page">
- <h2 class="section-title">🎯 Задания</h2>
- <div id="tasksContainer"></div>
-</section>
-
-<section id="friends" class="page">
- <h2 class="section-title">👥 Друзья</h2>
- <div class="upgrade" style="display:block">
-  Приглашай друзей!
-  <div class="muted">Твой игровой UID: <span id="myUid">подключение...</span></div>
- </div>
-</section>
-
-<section id="leaderboard" class="page">
- <h2 class="section-title">🏆 Лидерборд</h2>
- <div class="muted">Топ игроков по балансу</div>
- <div id="leaderboardList"></div>
-</section>
-</div>
-
-<nav class="nav">
- <div class="nav-item" onclick="showPage('home')"><span>🏠</span>Главная</div>
- <div class="nav-item" onclick="showPage('shop')"><span>🚀</span>Улучшения</div>
- <div class="nav-item" onclick="showPage('tasks')"><span>🎯</span>Задания</div>
- <div class="nav-item" onclick="showPage('friends')"><span>👥</span>Друзья</div>
- <div class="nav-item" onclick="showPage('leaderboard')"><span>🏆</span>Топ</div>
-</nav>
-
-<div class="modal" id="skinModal">
- <div class="window">
-  <h2>🎨 Скины кликов</h2>
-  <div id="skinList"></div>
-  <button class="close" onclick="closeModal('skinModal')">Закрыть</button>
- </div>
-</div>
-
-<div class="modal" id="adminLogin">
- <div class="window">
-  <h2>🔐 Вход администратора</h2>
-  <input type="password" id="adminPassword" placeholder="Пароль">
-  <button onclick="checkAdminPassword()">👑 Войти</button>
-  <button class="close" onclick="closeModal('adminLogin')">Отмена</button>
-  <div class="status" id="adminLoginStatus"></div>
- </div>
-</div>
-
-<div class="modal" id="adminPanel">
- <div class="window">
-  <h2>👑 ADMIN PANEL</h2>
-  <div class="status" id="adminStatus">Панель администратора</div>
-  <button onclick="adminAddCoins()">💰 Выдать монеты себе</button>
-  <button onclick="adminSetClickMultiplier()">⚡ Множитель клика</button>
-  <button onclick="adminRestoreEnergy()">🔋 Восстановить энергию</button>
-
-  <h3 style="margin-top:16px">🌍 Глобальные события</h3>
-  <select id="eventType">
-   <option value="golden">Golden Hour ×2 (5 минут)</option>
-   <option value="super">Super Click ×3 (3 минуты)</option>
-   <option value="rain">Gift Rain +500 000 всем (один раз)</option>
-   <option value="income">Crazy Income ×2 (10 минут)</option>
-   <option value="rainbow">Rainbow Event (5 минут)</option>
-   <option value="mega">MEGA EVENT (10 минут)</option>
-  </select>
-
-  <button onclick="startGlobalEvent()">▶ Запустить событие</button>
-  <button onclick="stopGlobalEvent()">⛔ Остановить событие</button>
-  <input id="announcementInput" placeholder="Текст объявления">
-  <button onclick="sendAnnouncement()">📢 Опубликовать объявление</button>
-  <button onclick="adminGrantToUid()">🎁 Выдать монеты UID</button>
-  <button class="close" onclick="closeModal('adminPanel')">Закрыть</button>
-  <button class="close" onclick="adminLogout()">Выйти</button>
- </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-
-<script>
-// Firebase: проект CLICKER
-const firebaseConfig={
- apiKey:"AIzaSyCgZkG60vQkGTm9_tC2DNeVUYuVbz5ZMUY",
- authDomain:"clicker-91693.firebaseapp.com",
- databaseURL:"https://clicker-91693-default-rtdb.europe-west1.firebasedatabase.app",
- projectId:"clicker-91693",
- storageBucket:"clicker-91693.firebasestorage.app",
- messagingSenderId:"981787618868",
- appId:"1:981787618868:web:4e5b00e7bc820f4e3a2461",
- measurementId:"G-YGS2VVRMNY"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth(), db=firebase.database();
-
-const ADMIN_UID="FzYDg0McacZwXOPSptOwUxnGlXm2";
-const ADMIN_PASSWORD="goshatop67991";
-const KEY="hamsterGame";
-
-const defaults={
- balance:0,energy:1000,maxEnergy:1000,clickPower:1,
- clickLevel:1,energyLevel:1,incomeLevel:0,income:0,
- clicks:0,earned:0,claimed:[],clickSkin:"classic",
- ownedSkins:["classic"],rouletteAt:0,incomeUnitVersion:2
-};
-
-let game=loadGame(),uid=null,isAdmin=false,adminUnlocked=false;
-let clickMult=1,incomeMult=1,activeEvent=null,eventTimer=null;
-
-let clickCost=Math.ceil(100*1.03**(game.clickLevel-1));
-let energyCost=Math.ceil(200*1.03**(game.energyLevel-1));
-let incomeCost=Math.ceil(500*1.03**game.incomeLevel);
-
-const $=id=>document.getElementById(id);
-
-function loadGame(){
- try{
-  let s=JSON.parse(localStorage.getItem(KEY));
-  return s?{...defaults,...s}:{...defaults};
- }catch(e){
-  return {...defaults};
- }
-}
-
-function save(){
- localStorage.setItem(KEY,JSON.stringify(game));
- syncPlayer();
-}
-
-function formatNumber(n){
- n=Number(n)||0;
- let a=Math.abs(n);
- if(a<1000)return n.toLocaleString("ru-RU",{maximumFractionDigits:2});
- for(const [v,s] of [[1e12,"т"],[1e9,"B"],[1e6,"м"],[1e3,"к"]]){
-  if(a>=v)return (n/v).toLocaleString("ru-RU",{maximumFractionDigits:1})+s;
- }
- return String(n);
-}
-
-function getClickReward(){
- let mult=({
-  classic:1,emerald:1.5,fire:2,diamond:2.5,
-  rainbow:3,angel:3.5,cosmic:4,neon:4.5
- })[game.clickSkin]||1;
-
- let ev=activeEvent?.type==="golden"?2:
-        activeEvent?.type==="super"?3:
-        activeEvent?.type==="mega"?5:1;
-
- return game.clickPower*mult*clickMult*ev;
-}
-
-function update(){
- $("balance").textContent=Math.floor(game.balance).toLocaleString("ru-RU");
- $("energy").textContent=formatNumber(Math.floor(game.energy));
- $("maxEnergy").textContent=formatNumber(game.maxEnergy);
- $("energyFill").style.width=(game.energy/game.maxEnergy*100)+"%";
-
- $("perClick").textContent="+"+formatNumber(getClickReward());
- $("income").textContent=formatNumber(game.income*incomeMult*(activeEvent?.type==="income"?2:activeEvent?.type==="mega"?5:1));
- $("clicks").textContent=formatNumber(game.clicks);
-
- $("level").textContent=Math.floor(game.earned/1e7)+1;
- $("clickLevel").textContent=game.clickLevel;
- $("energyLevel").textContent=game.energyLevel;
- $("incomeLevel").textContent=game.incomeLevel;
-
- $("clickCost").textContent=formatNumber(clickCost);
- $("energyCost").textContent=formatNumber(energyCost);
- $("incomeCost").textContent=formatNumber(incomeCost);
-
- $("buyClick").disabled=game.balance<clickCost;
- $("buyEnergy").disabled=game.balance<energyCost;
- $("buyIncome").disabled=game.balance<incomeCost;
-
- updateTasks();
- updateRoulette();
- renderSkins();
- saveLocal();
-}
-
-function saveLocal(){
- try{localStorage.setItem(KEY,JSON.stringify(game))}catch(e){}
-}
-
-function syncPlayer(){
- if(!uid)return;
- db.ref("players/"+uid).update({
-  name:"Игрок "+uid.slice(0,5),
-  balance:Math.floor(game.balance),
-  earned:Math.floor(game.earned),
-  clicks:game.clicks,
-  level:Math.floor(game.earned/1e7)+1,
-  updatedAt:Date.now(),
-  gameData:game
- }).catch(e=>console.warn("Firebase sync:",e.message));
-}
-
-function showPage(p){
- document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
- $(p).classList.add("active");
- if(p==="leaderboard")loadLeaderboard();
-}
-
-function openSkins(){
- $("skinModal").classList.add("active");
-}
-
-function closeModal(id){
- $(id).classList.remove("active");
-}
-
-const skins=[
- ["classic","Обычный",0,1],
- ["emerald","Изумрудный",1e7,1.5],
- ["fire","Огненный",2e7,2],
- ["diamond","Алмазный",3e7,2.5],
- ["rainbow","Радужный",2.5e7,3],
- ["angel","Ангельский",3.5e7,3.5],
- ["cosmic","Космический",4.5e7,4],
- ["neon","Неоновый",5.5e7,4.5]
-];
-
-function renderSkins(){
- $("skinList").innerHTML=skins.map(([id,n,p,m])=>
-  `<div class="skin-row">
-   <div><b>${n}</b><div class="muted">${p?formatNumber(p)+" монет":"Бесплатно"} · ×${m}</div></div>
-   <button onclick="selectSkin('${id}')">${game.ownedSkins.includes(id)?(game.clickSkin===id?"Выбрано":"Выбрать"):"Купить"}</button>
-  </div>`
- ).join("");
-}
-
-function selectSkin(id){
- let s=skins.find(x=>x[0]===id);
- if(!s)return;
- if(!game.ownedSkins.includes(id)){
-  if(game.balance<s[2])return alert("Недостаточно монет");
-  game.balance-=s[2];
-  game.ownedSkins.push(id);
- }
- game.clickSkin=id;
- update();
-}
-
-const tasks=[
- {id:1,title:"🎮 Начинающий игрок",goal:100,reward:500,type:"clicks"},
- {id:2,title:"🪙 Первый капитал",goal:1000,reward:1000},
- {id:3,title:"💰 Опытный игрок",goal:1e4,reward:2000},
- {id:4,title:"🏆 Богач",goal:1e5,reward:1e4},
- {id:5,title:"💎 Миллионер",goal:1e6,reward:1e5},
- {id:6,title:"👑 Магнат",goal:1e7,reward:1e6},
- {id:7,title:"🌟 Легенда",goal:1e8,reward:1e7},
- {id:8,title:"🚀 Миллиардер",goal:1e9,reward:1e8},
- {id:9,title:"🌌 Космический магнат",goal:1e10,reward:1e9},
- {id:10,title:"👑 Император монет",goal:1e11,reward:1e10},
- {id:11,title:"🏅 Легенда галактики",goal:1e12,reward:1e11},
- {id:12,title:"🌠 Повелитель вселенной",goal:1e13,reward:1e12}
-];
-
-function createTasks(){
- $("tasksContainer").innerHTML=tasks.map(t=>
-  `<div class="upgrade task-item" id="task${t.id}">
-   <div><b>${t.title}</b><small id="prog${t.id}"></small></div>
-   <button id="taskBtn${t.id}" onclick="claimTask(${t.id})">${formatNumber(t.reward)}</button>
-  </div>`
- ).join("");
-}
-
-function updateTasks(){
- tasks.forEach(t=>{
-  let v=t.type==="clicks"?game.clicks:game.earned;
-  let done=v>=t.goal,claimed=game.claimed.includes(t.id);
-
-  if($("prog"+t.id)){
-   $("prog"+t.id).textContent=formatNumber(Math.min(v,t.goal))+" / "+formatNumber(t.goal);
-  }
-
-  if($("taskBtn"+t.id)){
-   $("taskBtn"+t.id).disabled=!done||claimed;
-   $("taskBtn"+t.id).textContent=claimed?"Получено":formatNumber(t.reward);
-   $("task"+t.id).classList.toggle("done",done&&!claimed);
-  }
- });
-}
-
-function claimTask(id){
- let t=tasks.find(x=>x.id===id);
- if(!t||game.claimed.includes(id))return;
-
- let v=t.type==="clicks"?game.clicks:game.earned;
- if(v>=t.goal){
-  game.balance+=t.reward;
-  game.claimed.push(id);
-  update();
- }
-}
-
-$("hamster").addEventListener("pointerdown",e=>{
- e.preventDefault();
- if(game.energy<1)return;
-
- game.energy--;
- let r=getClickReward();
- game.balance+=r;
- game.earned+=r;
- game.clicks++;
-
- let p=document.createElement("div");
- p.className="popup";
- p.textContent="+"+formatNumber(r);
- p.style.left=e.clientX+"px";
- p.style.top=e.clientY+"px";
- document.body.append(p);
- setTimeout(()=>p.remove(),600);
-
- $("hamster").classList.add("pressed");
- update();
-});
-
-window.addEventListener("pointerup",()=>$("hamster").classList.remove("pressed"));
-
-$("buyClick").onclick=()=>{
- if(game.balance<clickCost)return;
- game.balance-=clickCost;
- game.clickPower++;
- game.clickLevel++;
- clickCost=Math.ceil(clickCost*1.03);
- update();
-};
-
-$("buyEnergy").onclick=()=>{
- if(game.balance<energyCost)return;
- game.balance-=energyCost;
- game.maxEnergy+=100;
- game.energy=game.maxEnergy;
- game.energyLevel++;
- energyCost=Math.ceil(energyCost*1.03);
- update();
-};
-
-$("buyIncome").onclick=()=>{
- if(game.balance<incomeCost)return;
- game.balance-=incomeCost;
- game.income++;
- game.incomeLevel++;
- incomeCost=Math.ceil(incomeCost*1.03);
- update();
-};
-
-setInterval(()=>{
- if(document.hidden)return;
-
- if(game.energy<game.maxEnergy){
-  game.energy=Math.min(game.maxEnergy,game.energy+15);
- }
-
- if(game.income){
-  let m=activeEvent?.type==="income"?2:activeEvent?.type==="mega"?5:1;
-  let r=game.income*incomeMult*m;
-  game.balance+=r;
-  game.earned+=r;
- }
-
- update();
-},1000);
-
-setInterval(save,5000);
-window.addEventListener("pagehide",save);
-
-let bonus=null;
-
-setInterval(()=>{
- if(document.hidden||bonus)return;
-
- bonus=document.createElement("button");
- bonus.className="bonus-coin";
- bonus.textContent="🪙";
- bonus.style.left=Math.max(5,Math.random()*(innerWidth-55))+"px";
- bonus.style.top=Math.max(70,Math.random()*(innerHeight-150))+"px";
- document.body.append(bonus);
-
- bonus.onclick=()=>{
-  let reward=Math.floor(game.balance*.1);
-  game.balance+=reward;
-  game.earned+=reward;
-  bonus.remove();
-  bonus=null;
-  update();
- };
-
- setTimeout(()=>{
-  if(bonus){
-   bonus.remove();
-   bonus=null;
-  }
- },7000);
-},60000);
-
-function updateRoulette(){
- let ready=Date.now()-Number(game.rouletteAt||0)>=86400000;
- $("spinButton").disabled=!ready;
- $("spinButton").textContent=ready?"🎡 Крутить бесплатно":"⏳ Попробуй позже";
-
- if(!ready){
-  let left=86400000-(Date.now()-game.rouletteAt);
-  $("rouletteResult").textContent="Следующий спин через "+Math.ceil(left/3600000)+" ч.";
- }
-}
-
-function spinRoulette(){
- if(Date.now()-Number(game.rouletteAt||0)<86400000)return;
-
- game.rouletteAt=Date.now();
- let r=Math.random(),prize;
-
- if(r<.40)prize={name:"1 000 монет",coins:1000};
- else if(r<.68)prize={name:"10 000 монет",coins:10000};
- else if(r<.83)prize={name:"100 000 монет",coins:100000};
- else if(r<.88)prize={name:"1 000 000 монет",coins:1000000};
- else if(r<.98)prize={name:"Полная энергия",energy:1};
- else prize={name:"Особый приз: +5 000 000",coins:5000000};
-
- if(prize.coins){
-  game.balance+=prize.coins;
-  game.earned+=prize.coins;
- }
-
- if(prize.energy)game.energy=game.maxEnergy;
-
- $("rouletteResult").textContent="🎉 Выпало: "+prize.name;
- update();
-}
-
-$("secretLevel").onclick=()=>{
- window.starCount=(window.starCount||0)+1;
- clearTimeout(window.starTimer);
- window.starTimer=setTimeout(()=>window.starCount=0,1800);
-
- if(window.starCount>=6){
-  window.starCount=0;
-  $("adminPassword").value="";
-  $("adminLoginStatus").textContent="";
-  $("adminLogin").classList.add("active");
- }
-};
-
-async function checkAdminPassword(){
- if(!uid)return $("adminLoginStatus").textContent="Firebase ещё подключается";
- if(uid!==ADMIN_UID)return $("adminLoginStatus").textContent="Нет прав администратора для этого Firebase UID.";
- if($("adminPassword").value!==ADMIN_PASSWORD)return $("adminLoginStatus").textContent="Неверный пароль.";
-
- isAdmin=true;
- adminUnlocked=true;
- closeModal("adminLogin");
- $("adminPanel").classList.add("active");
-}
-
-function adminLogout(){
- adminUnlocked=false;
- isAdmin=false;
- closeModal("adminPanel");
-}
-
-function requireAdmin(){
- if(!adminUnlocked||uid!==ADMIN_UID){
-  alert("Нет доступа");
-  return false;
- }
- return true;
-}
-
-function adminAddCoins(){
- if(!requireAdmin())return;
- let n=Number(prompt("Сколько монет выдать?"));
- if(n>0&&Number.isFinite(n)){
-  game.balance+=n;
-  game.earned+=n;
-  update();
- }
-}
-
-function adminSetClickMultiplier(){
- if(!requireAdmin())return;
- let n=Number(prompt("Множитель клика от 0.1 до 100000","10"));
- if(n>=.1&&n<=100000){
-  clickMult=n;
-  update();
- }
-}
-
-function adminRestoreEnergy(){
- if(!requireAdmin())return;
- game.energy=game.maxEnergy;
- update();
-}
-
-function startGlobalEvent(){
- if(!requireAdmin())return;
-
- let type=$("eventType").value;
- let durations={
-  golden:300000,
-  super:180000,
-  rain:0,
-  income:600000,
-  rainbow:300000,
-  mega:600000
- };
-
- let event={
-  type,
-  startedAt:Date.now(),
-  endsAt:Date.now()+durations[type],
-  by:uid
- };
-
- if(type==="rain"){
-  event.endsAt=Date.now()+60000;
-  event.reward=500000;
- }
-
- db.ref("adminAbuse/current").set(event)
-  .then(()=>$("adminStatus").textContent="Событие запущено: "+type)
-  .catch(e=>$("adminStatus").textContent=e.message);
-}
-
-function stopGlobalEvent(){
- if(!requireAdmin())return;
- db.ref("adminAbuse/current").remove();
- $("adminStatus").textContent="Событие остановлено";
-}
-
-function sendAnnouncement(){
- if(!requireAdmin())return;
- let text=$("announcementInput").value.trim();
-
- if(text){
-  db.ref("adminAbuse/announcement").set({
-   text,
-   at:Date.now(),
-   by:uid
-  }).then(()=>$("adminStatus").textContent="Объявление опубликовано");
- }
-}
-
-function adminGrantToUid(){
- if(!requireAdmin())return;
-
- let target=prompt("UID игрока");
- let amount=Number(prompt("Сколько монет выдать?"));
-
- if(!target||!Number.isFinite(amount)||amount<=0)return;
-
- db.ref("adminAbuse/grants/"+target).push({
-  amount,
-  at:Date.now(),
-  by:uid
- }).then(()=>$("adminStatus").textContent="Награда отправлена UID: "+target);
-}
-
-function listenGlobal(){
- db.ref("adminAbuse/current").on("value",snap=>{
-  activeEvent=snap.val();
-
-  if(activeEvent&&activeEvent.endsAt<Date.now()){
-   activeEvent=null;
-   $("eventBanner").style.display="none";
-   return;
-  }
-
-  if(activeEvent){
-   let labels={
-    golden:"🌟 Golden Hour: ×2 монеты за клик",
-    super:"⚡ Super Click: ×3 сила клика",
-    rain:"🎁 Gift Rain: подарок игрокам",
-    income:"🏭 Crazy Income: ×2 доход",
-    rainbow:"🌈 Rainbow Event: случайные награды",
-    mega:"🚀 MEGA EVENT: усиленный режим"
-   };
-
-   $("eventBanner").textContent=labels[activeEvent.type]||"Глобальное событие";
-   $("eventBanner").style.display="block";
-
-   if(activeEvent.type==="rain"&&activeEvent.reward&&!localStorage.getItem("rain_"+activeEvent.startedAt)){
-    game.balance+=Number(activeEvent.reward);
-    game.earned+=Number(activeEvent.reward);
-    localStorage.setItem("rain_"+activeEvent.startedAt,"1");
-    update();
-   }
-
-   update();
-  }
- });
-
- db.ref("adminAbuse/announcement").on("value",s=>{
-  let a=s.val();
-  if(a?.text&&Number(a.at)>Number(localStorage.getItem("lastAnnouncement")||0)){
-   alert("📢 "+a.text);
-   localStorage.setItem("lastAnnouncement",a.at);
-  }
- });
-}
-
-function loadLeaderboard(){
- db.ref("players").orderByChild("balance").limitToLast(50).once("value")
-  .then(s=>{
-   let rows=[];
-   s.forEach(x=>rows.push({uid:x.key,...x.val()}));
-   rows.sort((a,b)=>(b.balance||0)-(a.balance||0));
-
-   $("leaderboardList").innerHTML=rows.slice(0,50).map((p,i)=>
-    `<div class="upgrade"><b>${i+1}. ${p.name||"Игрок"}</b><strong>🪙 ${formatNumber(p.balance||0)}</strong></div>`
-   ).join("")||'<div class="upgrade">Пока нет игроков</div>';
-  })
-  .catch(e=>$("leaderboardList").textContent="Ошибка загрузки: "+e.message);
-}
-
-async function bootFirebase(){
- try{
-  let cred=await auth.signInAnonymously();
-  uid=cred.user.uid;
-  $("myUid").textContent=uid;
-
-  await db.ref("players/"+uid).once("value").then(s=>{
-   let cloud=s.val();
-   if(cloud&&cloud.gameData){
-    game={...defaults,...cloud.gameData};
-    update();
-   }else{
-    syncPlayer();
-   }
-  });
-
-  syncPlayer();
-  listenGlobal();
-
-  db.ref("adminAbuse/grants/"+uid).on("child_added",s=>{
-   let grant=s.val(),key="grant_"+s.key;
-
-   if(grant&&!localStorage.getItem(key)){
-    game.balance+=Number(grant.amount)||0;
-    game.earned+=Number(grant.amount)||0;
-    localStorage.setItem(key,"1");
-    update();
-   }
-  });
-
-  setInterval(syncPlayer,15000);
-
- }catch(e){
-  console.error(e);
-  $("myUid").textContent="Ошибка Firebase: "+e.message;
- }
-}
-
-createTasks();
-update();
-updateRoulette();
-bootFirebase();
-
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>CLICKER</title>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
 body{background:#101225;color:white;font-family:Arial,sans-serif;font-size:17px}
 .app{max-width:430px;min-height:100vh;margin:auto;padding:20px 18px 100px;background:linear-gradient(180deg,#242944,#151728)}
 .header{display:flex;justify-content:space-between;align-items:flex-start}
+.brand,.header-right{display:flex;flex-direction:column;gap:9px}
+.header-right{align-items:flex-end}
 .logo{font-size:20px;font-weight:bold}
-.brand{display:flex;flex-direction:column;align-items:flex-start;gap:9px}
-.skins-open{width:58px;height:58px;padding:4px;border-radius:13px;background:linear-gradient(145deg,#8b5cff,#5425c9);color:white;border:2px solid #b89aff;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;box-shadow:0 0 12px #742cff88}
-.skins-open span{font-size:24px}
-.skins-open small{font-size:11px}
-.level{padding:9px 13px;border-radius:20px;background:#343a59;font-size:15px;white-space:nowrap}
+.level{padding:9px 13px;border-radius:20px;background:#343a59;font-size:15px;white-space:nowrap;cursor:pointer;touch-action:manipulation}
+.skins-open{width:105px;padding:8px;border-radius:13px;background:linear-gradient(145deg,#8b5cff,#5425c9);color:white;border:2px solid #b89aff;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;box-shadow:0 0 12px #742cff88}
+.skins-open span{font-size:22px}
+.skins-open small{font-size:10px;color:white}
+.skin-modal,.admin-modal{position:fixed;inset:0;z-index:500;background:#000a;display:none;justify-content:center;align-items:center;padding:15px}
+.skin-modal.active,.admin-modal.active{display:flex}
+.skin-window,.admin-window{width:100%;max-width:360px;max-height:85vh;overflow-y:auto;background:linear-gradient(180deg,#303858,#191d32);border:2px solid #7852dc;border-radius:20px;padding:20px;box-shadow:0 0 30px #672cff77}
+.skin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.skin-header h2{font-size:21px}
+.skin-close{width:35px;height:35px;padding:0;font-size:21px;background:#484d69;color:white}
+.skin-option{display:flex;align-items:center;gap:10px;padding:11px;border-radius:13px;background:#292f4b;margin-bottom:10px;border:2px solid transparent}
+.skin-option.selected{border-color:#ffe16a;background:#3b3b59}
+.skin-preview{width:45px;height:45px;flex-shrink:0;border-radius:50%;border:3px solid #ffffff88;box-shadow:0 0 10px currentColor}
+.classic-preview{background:linear-gradient(145deg,#777f99,#343b55);color:#9ca6c9}
+.emerald-preview{background:linear-gradient(145deg,#42ff9b,#087b52);color:#42ff9b}
+.fire-preview{background:linear-gradient(145deg,#ffcf35,#e52b10);color:#ff642b}
+.diamond-preview{background:linear-gradient(145deg,#eaffff,#398bff);color:#75eaff}
+.rainbow-preview{background:linear-gradient(145deg,#ff5555,#9b55ff,#42eaff);color:#ff70e8}
+.angel-preview{background:linear-gradient(145deg,#ffffff,#8ccfff);color:#ffffff}
+.cosmic-preview{background:linear-gradient(145deg,#19104f,#a044ff,#171d55);color:#a66bff}
+.neon-preview{background:linear-gradient(145deg,#00fff0,#a000ff,#ff00a8);color:#00fff0}
+.skin-info{flex:1;min-width:0}
+.skin-info strong{display:block;font-size:14px}
+.skin-info small{display:block;color:#b9bfd5;margin-top:5px;font-size:11px}
+.skin-select{min-width:76px;padding:9px 5px;font-size:12px;flex-shrink:0}
 .balance-box{text-align:center;margin:30px 0 22px}
 .balance-title{color:#aeb5d0}
-.balance{margin-top:8px;color:#ffe16a;font-size:36px;font-weight:bold;white-space:nowrap}
+.balance{margin-top:8px;color:#ffe16a;font-size:36.5px;font-weight:bold;white-space:nowrap;transition:font-size .2s}
+.balance.small{font-size:clamp(14px,5vw,28px)}
 .hamster-wrap{display:flex;justify-content:center;align-items:center;margin:20px auto 26px}
-.hamster{width:min(78vw,310px);aspect-ratio:1;border-radius:50%;overflow:hidden;border:6px solid #692bff;background:#00113e;box-shadow:0 0 20px #742cff,0 0 40px #4c20ff99;touch-action:none;cursor:pointer;transition:transform .06s}
+.hamster{width:min(78vw,310px);aspect-ratio:1;border-radius:50%;overflow:hidden;border:6px solid #692bff;background:#00113e;box-shadow:0 0 20px #742cff,0 0 40px #4c20ff99;touch-action:none;cursor:pointer;transition:transform .06s,background .3s,box-shadow .3s,border-color .3s;position:relative}
+.hamster::after{content:"";position:absolute;inset:12%;border-radius:50%;border:2px solid #ffffff22;pointer-events:none}
 .hamster.pressed{transform:scale(.96)}
+.hamster.skin-classic{background:linear-gradient(145deg,#777f99,#343b55);border-color:#aab2ca;box-shadow:0 0 20px #9ca6c9,0 0 40px #343b5599}
+.hamster.skin-emerald{background:radial-gradient(circle at 35% 30%,#9affc7,#13bd70 45%,#034d36);border-color:#42ff9b;box-shadow:0 0 20px #42ff9b,0 0 45px #00d879}
+.hamster.skin-fire{background:radial-gradient(circle at 35% 30%,#fff08a,#ff7826 45%,#9c1308);border-color:#ff642b;box-shadow:0 0 20px #ff642b,0 0 45px #ff2500}
+.hamster.skin-diamond{background:radial-gradient(circle at 35% 30%,#fff,#75eaff 45%,#1452bd);border-color:#b9ffff;box-shadow:0 0 20px #75eaff,0 0 45px #398bff}
+.hamster.skin-rainbow{background:conic-gradient(#ff5555,#ffcf45,#55ff9b,#42eaff,#5555ff,#c855ff,#ff5555);border-color:#ff9af2;box-shadow:0 0 20px #ff70e8,0 0 45px #8c4dff}
+.hamster.skin-angel{background:radial-gradient(circle at 35% 30%,#fff,#c9f0ff 50%,#679fdc);border-color:#fff;box-shadow:0 0 22px #fff,0 0 48px #8bdfff}
+.hamster.skin-cosmic{background:radial-gradient(circle at 35% 30%,#b67bff,#35116f 45%,#090525);border-color:#a66bff;box-shadow:0 0 20px #a66bff,0 0 45px #5425ff}
+.hamster.skin-neon{background:radial-gradient(circle at 35% 30%,#00fff0,#a000ff 50%,#27002d);border-color:#00fff0;box-shadow:0 0 22px #00fff0,0 0 50px #ff00e6}
 .stats{display:flex;justify-content:space-between;background:#292f4b;padding:15px 8px;border-radius:15px;gap:4px}
 .stat{text-align:center;min-width:0;flex:1}
 .stat small{display:block;color:#aeb5d0;margin-bottom:7px;font-size:12px}
@@ -809,34 +71,26 @@ body{background:#101225;color:white;font-family:Arial,sans-serif;font-size:17px}
 button{border:none;border-radius:10px;padding:11px 12px;background:#f8d45b;color:#27263b;font-weight:bold;cursor:pointer}
 button:disabled{background:#666b80;color:white}
 button:active{transform:scale(.96)}
-.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;display:flex;justify-content:space-around;padding:10px 2px;background:#20243a;z-index:50;gap:2px}
-.nav-item{text-align:center;color:#b3bad2;font-size:10px;cursor:pointer;flex:1}
-.nav-item span{display:block;font-size:20px;margin-bottom:3px}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;display:flex;justify-content:space-around;padding:13px 4px;background:#20243a;z-index:50}
+.nav-item{text-align:center;color:#b3bad2;font-size:13px;cursor:pointer}
+.nav-item span{display:block;font-size:23px;margin-bottom:4px}
 .popup{position:fixed;pointer-events:none;color:#ffe16a;font-size:24px;font-weight:bold;animation:rise .55s forwards;z-index:100}
 @keyframes rise{to{opacity:0;transform:translateY(-60px)}}
 .task-item{position:relative}
-.task-item.task-completed:after{content:"";position:absolute;top:7px;right:7px;width:11px;height:11px;border-radius:50%;background:#ff3030;box-shadow:0 0 8px #ff3030}
-.modal{position:fixed;inset:0;z-index:500;background:#000b;display:none;justify-content:center;align-items:center;padding:15px}
-.modal.active{display:flex}
-.window{width:100%;max-width:370px;max-height:85vh;overflow-y:auto;background:linear-gradient(180deg,#303858,#191d32);border:2px solid #7852dc;border-radius:20px;padding:20px;box-shadow:0 0 30px #672cff77}
-.window h2{margin-bottom:15px}
-.window input,.window select{width:100%;padding:12px;border-radius:10px;border:2px solid #7852dc;background:#17152e;color:white;font-size:16px;margin:7px 0}
-.window button{margin-top:8px}
-.full{width:100%}
-.close{background:#484d69;color:white}
-.skin-option{display:flex;align-items:center;gap:10px;padding:11px;border-radius:13px;background:#292f4b;margin-bottom:10px;border:2px solid transparent}
-.skin-option.selected{border-color:#ffe16a}
-.skin-preview{width:43px;height:43px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;background:linear-gradient(145deg,#777f99,#343b55)}
-.skin-info{flex:1;min-width:0}
-.skin-info strong{display:block;font-size:14px}
-.skin-info small{display:block;color:#b9bfd5;margin-top:5px;font-size:11px}
-.skin-select{min-width:75px;padding:9px 5px;font-size:12px}
-.list-row{background:#292f4b;padding:12px;border-radius:12px;margin:8px 0;display:flex;justify-content:space-between;gap:8px;align-items:center}
-.notice{background:#382e58;border:1px solid #8c64e9;padding:12px;border-radius:12px;margin:10px 0;overflow-wrap:anywhere}
+.task-item.task-completed::after{content:"";position:absolute;top:7px;right:7px;width:11px;height:11px;border-radius:50%;background:#ff3030;box-shadow:0 0 8px #ff3030;z-index:5}
+.click-effect{position:fixed;pointer-events:none;z-index:300;font-size:26px;animation:clickEffectAnimation .75s ease-out forwards}
+@keyframes clickEffectAnimation{0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}50%{opacity:1;transform:translate(-50%,-80%) scale(1.4) rotate(25deg)}100%{opacity:0;transform:translate(-50%,-150%) scale(.5) rotate(70deg)}}
+.click-ring{position:fixed;width:20px;height:20px;border-radius:50%;pointer-events:none;z-index:299;transform:translate(-50%,-50%);animation:ringAnimation .55s ease-out forwards}
+@keyframes ringAnimation{from{width:10px;height:10px;opacity:1}to{width:100px;height:100px;opacity:0}}
+.bonus-coin{position:fixed;z-index:200;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;background:linear-gradient(145deg,#ffe98a,#ffae00);border:3px solid #fff0a8;box-shadow:0 0 12px #ffdb45,0 0 25px #ffb70099;cursor:pointer;padding:0;transition:left 1.4s linear,top 1.4s linear}
+.bonus-reward{position:fixed;z-index:210;pointer-events:none;color:#ffe16a;font-size:24px;font-weight:bold;animation:bonusRewardAnimation 1.1s ease-out forwards}
+@keyframes bonusRewardAnimation{0%{opacity:0;transform:translate(-50%,0) scale(.5)}20%{opacity:1;transform:translate(-50%,-15px) scale(1.2)}70%{opacity:1;transform:translate(-50%,-45px) scale(1)}100%{opacity:0;transform:translate(-50%,-65px) scale(.9)}}
 .admin-window{background:linear-gradient(180deg,#3b176b,#17152e);border-color:#bd55ff}
-.admin-window button{width:100%;background:linear-gradient(90deg,#a000ff,#ed35d6);color:white}
-.admin-status{color:#aaffc9;font-size:13px;margin:10px 0;overflow-wrap:anywhere}
-.small-text{font-size:12px;color:#aeb5d0}
+.admin-window h2{color:#e7aaff;margin-bottom:15px}
+.admin-window input{width:100%;padding:13px;border-radius:10px;border:2px solid #a64dff;background:#17152e;color:white;font-size:16px;margin:10px 0;user-select:text}
+.admin-window button{width:100%;margin-top:9px;padding:13px;background:linear-gradient(90deg,#a000ff,#ed35d6);color:white}
+.admin-close{background:#45415e!important}
+.admin-status{color:#aaffc9;margin:10px 0;font-size:13px;overflow-wrap:anywhere}
 </style>
 </head>
 
@@ -846,43 +100,58 @@ button:active{transform:scale(.96)}
 <header class="header">
     <div class="brand">
         <div class="logo">CLICKER</div>
-        <button class="skins-open" onclick="openModal('skinModal')">
-            <span>🎨</span><small>СКИНЫ</small>
+        <button class="skins-open" onclick="openSkins('click')">
+            <span>✨</span><small>СКИНЫ КЛИКОВ</small>
         </button>
     </div>
-    <div class="level" id="secretLevel" onclick="secretTap()">⭐ Ур. <span id="level">1</span></div>
+
+    <div class="header-right">
+        <div class="level" id="secretLevel">⭐ Ур. <span id="level">1</span></div>
+        <button class="skins-open" onclick="openSkins('circle')">
+            <span>🔮</span><small>СКИНЫ КРУЖКА</small>
+        </button>
+    </div>
 </header>
 
 <section id="home" class="page active">
     <div class="balance-box">
         <div class="balance-title">ТВОЙ БАЛАНС</div>
-        <div class="balance">🪙 <span id="balance">0</span></div>
+        <div class="balance" id="balanceBox">🪙 <span id="balance">0</span></div>
     </div>
-    <div class="hamster-wrap"><div class="hamster" id="hamster"></div></div>
+
+    <div class="hamster-wrap">
+        <div class="hamster skin-classic" id="hamster"></div>
+    </div>
+
     <div class="stats">
         <div class="stat"><small>За клик</small><strong id="perClick">+1</strong></div>
         <div class="stat"><small>Доход/сек</small><strong id="income">0</strong></div>
         <div class="stat"><small>Клики</small><strong id="clicks">0</strong></div>
     </div>
+
     <div class="energy-box">
-        <div class="energy-info"><strong>⚡ Энергия</strong><strong><span id="energy">1000</span>/<span id="maxEnergy">1000</span></strong></div>
+        <div class="energy-info">
+            <strong>⚡ Энергия</strong>
+            <strong><span id="energy">1000</span>/<span id="maxEnergy">1000</span></strong>
+        </div>
         <div class="energy-bar"><div class="energy-fill" id="energyFill"></div></div>
     </div>
-    <h2 class="section-title">🎁 Ежедневный подарок</h2>
-    <div class="upgrade">
-        <div><strong id="dailyTitle">Подарок дня</strong><small id="dailyInfo">Заходи каждый день!</small></div>
-        <button id="dailyButton" onclick="claimDaily()">Забрать</button>
-    </div>
-    <h2 class="section-title">🌍 Глобальное событие</h2>
-    <div class="notice" id="eventBox">Сейчас активных событий нет.</div>
-    <div class="notice" id="announcementBox">Глобальных объявлений нет.</div>
 </section>
 
 <section id="shop" class="page">
     <h2 class="section-title">🚀 Улучшения</h2>
-    <div class="upgrade"><div><div class="upgrade-icon">👆</div><strong>Сильный палец</strong><small>Уровень: <span id="clickLevel">1</span></small></div><button id="buyClick">🪙 <span id="clickCost">100</span></button></div>
-    <div class="upgrade"><div><div class="upgrade-icon">⚡</div><strong>Больше энергии</strong><small>Уровень: <span id="energyLevel">1</span></small></div><button id="buyEnergy">🪙 <span id="energyCost">200</span></button></div>
-    <div class="upgrade"><div><div class="upgrade-icon">🏭</div><strong>Автоматический доход</strong><small>Уровень: <span id="incomeLevel">0</span></small><small>+1 монета в секунду</small></div><button id="buyIncome">🪙 <span id="incomeCost">500</span></button></div>
+    <div class="upgrade">
+        <div><div class="upgrade-icon">👆</div><strong>Сильный палец</strong><small>Уровень: <span id="clickLevel">1</span></small></div>
+        <button id="buyClick">🪙 <span id="clickCost">100</span></button>
+    </div>
+    <div class="upgrade">
+        <div><div class="upgrade-icon">⚡</div><strong>Больше энергии</strong><small>Уровень: <span id="energyLevel">1</span></small></div>
+        <button id="buyEnergy">🪙 <span id="energyCost">200</span></button>
+    </div>
+    <div class="upgrade">
+        <div><div class="upgrade-icon">🏭</div><strong>Автоматический доход</strong><small>Уровень: <span id="incomeLevel">0</span></small><small>+1 монета в секунду за покупку</small></div>
+        <button id="buyIncome">🪙 <span id="incomeCost">500</span></button>
+    </div>
 </section>
 
 <section id="tasks" class="page">
@@ -892,16 +161,44 @@ button:active{transform:scale(.96)}
 
 <section id="friends" class="page">
     <h2 class="section-title">👥 Друзья</h2>
-    <div class="upgrade"><div><strong>Приглашай друзей!</strong><small>Скоро появится система приглашений.</small></div></div>
+    <div class="upgrade">Приглашай друзей!</div>
 </section>
+</div>
 
-<section id="leaderboard" class="page">
-    <h2 class="section-title">🏆 Лидерборд</h2>
-    <div class="notice">Глобальный рейтинг игроков по балансу.</div>
-    <button class="full" onclick="loadLeaderboard()">🔄 Обновить рейтинг</button>
-    <div id="leaderboardList">Загрузка...</div>
-</section>
+<div class="skin-modal" id="skinModal" onclick="closeSkinsOutside(event)">
+    <div class="skin-window">
+        <div class="skin-header">
+            <h2 id="skinTitle">🎨 Скины</h2>
+            <button class="skin-close" onclick="closeSkins()">✕</button>
+        </div>
+        <div id="skinList"></div>
+    </div>
+</div>
 
+<div class="admin-modal" id="adminLogin">
+    <div class="admin-window">
+        <h2>🔐 Вход администратора</h2>
+        <input type="password" id="adminPassword" placeholder="Введи пароль" autocomplete="off">
+        <button onclick="checkAdminPassword()">👑 Войти</button>
+        <button class="admin-close" onclick="closeAdminLogin()">Отмена</button>
+        <div class="admin-status" id="adminLoginStatus"></div>
+    </div>
+</div>
+
+<div class="admin-modal" id="adminPanel">
+    <div class="admin-window">
+        <h2>👑 ADMIN PANEL</h2>
+        <div class="admin-status">Добро пожаловать, администратор!</div>
+        <button onclick="adminAddCoins()">💰 Выдать монеты</button>
+        <button onclick="adminSetClickMultiplier()">⚡ Изменить множитель кликов</button>
+        <button onclick="adminRestoreEnergy()">🔋 Восстановить энергию</button>
+        <button onclick="adminGiveSkin()">🎨 Выдать скин</button>
+        <button onclick="startAdminAbuse()">🌪️ START ADMIN ABUSE</button>
+        <button onclick="stopAdminAbuse()">⛔ STOP ADMIN ABUSE</button>
+        <div class="admin-status" id="adminStatus">Событие не запущено.</div>
+        <button class="admin-close" onclick="closeAdminPanel()">Закрыть админку</button>
+        <button class="admin-close" onclick="adminLogout()">Выйти из режима администратора</button>
+    </div>
 </div>
 
 <nav class="nav">
@@ -909,3629 +206,752 @@ button:active{transform:scale(.96)}
     <div class="nav-item" onclick="showPage('shop')"><span>🚀</span>Улучшения</div>
     <div class="nav-item" onclick="showPage('tasks')"><span>🎯</span>Задания</div>
     <div class="nav-item" onclick="showPage('friends')"><span>👥</span>Друзья</div>
-    <div class="nav-item" onclick="showPage('leaderboard');loadLeaderboard()"><span>🏆</span>Топ</div>
 </nav>
 
-<!-- СКИНЫ -->
-<div class="modal" id="skinModal" onclick="outsideClose(event,'skinModal')">
-<div class="window">
-<h2>🎨 Скины кликов</h2>
-<div id="skinList"></div>
-<button class="full close" onclick="closeModal('skinModal')">Закрыть</button>
-</div>
-</div>
-
-<!-- ВХОД АДМИНА -->
-<div class="modal" id="adminLogin">
-<div class="window admin-window">
-<h2>🔐 Вход администратора</h2>
-<input id="adminEmail" type="email" placeholder="Email администратора">
-<input id="adminPassword" type="password" placeholder="Пароль Firebase">
-<button class="full" onclick="checkAdminPassword()">👑 Войти</button>
-<button class="full close" onclick="closeModal('adminLogin')">Отмена</button>
-<div class="admin-status" id="adminLoginStatus"></div>
-</div>
-</div>
-
-<!-- АДМИН-ПАНЕЛЬ -->
-<div class="modal" id="adminPanel">
-<div class="window admin-window">
-<h2>👑 ADMIN ABUSE</h2>
-<div class="admin-status" id="adminStatus">Администратор авторизован.</div>
-
-<h3>🌪️ Глобальные события</h3>
-<select id="eventType">
-<option value="golden">⚡ Golden Hour x2</option>
-<option value="super">🚀 Super Click x3</option>
-<option value="rain">🎁 Gift Rain</option>
-<option value="crazy">🔥 Crazy Income x2</option>
-<option value="rainbow">🌈 Rainbow Event</option>
-<option value="mega">☢️ MEGA ADMIN ABUSE</option>
-</select>
-<input id="eventDuration" type="number" value="5" min="1" max="1440" placeholder="Длительность в минутах">
-<button onclick="startGlobalEvent()">▶️ Запустить событие</button>
-<button onclick="stopGlobalEvent()">⛔ Остановить событие</button>
-
-<h3 style="margin-top:18px">💰 Выдача монет</h3>
-<input id="grantAmount" type="number" placeholder="Количество монет">
-<button onclick="grantEveryone()">🌍 Выдать всем игрокам</button>
-<input id="targetUid" placeholder="UID игрока">
-<button onclick="grantPlayer()">👤 Выдать конкретному игроку</button>
-
-<h3 style="margin-top:18px">📢 Объявление</h3>
-<input id="announcementInput" placeholder="Текст объявления">
-<button onclick="sendAnnouncement()">📢 Отправить всем</button>
-
-<h3 style="margin-top:18px">📜 История событий</h3>
-<div id="adminHistory" class="small-text">История пока пуста.</div>
-
-<button class="full close" onclick="closeModal('adminPanel')">Закрыть</button>
-<button class="full close" onclick="adminLogout()">Выйти из админки</button>
-</div>
-</div>
-
 <script>
-// =======================================
-// FIREBASE
-// =======================================
-
-const firebaseConfig = {
- apiKey:"AIzaSyCgZkG60vQkGTm9_tC2DNeVUYuVbz5ZMUY",
- authDomain:"clicker-91693.firebaseapp.com",
- databaseURL:"https://clicker-91693-default-rtdb.europe-west1.firebasedatabase.app",
- projectId:"clicker-91693",
- storageBucket:"clicker-91693.firebasestorage.app",
- messagingSenderId:"981787618868",
- appId:"1:981787618868:web:4e5b00e7bc820f4e3a2461",
- measurementId:"G-YGS2VVRMNY"
-};
-
-const ADMIN_UID="FzYDg0McacZwXOPSptOwUxnGlXm2";
-
-firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth();
-const db=firebase.database();
-
-let currentUser=null;
-let isAdmin=false;
-let firebaseReady=false;
-let saving=false;
-let saveTimer=null;
-let currentEvent=null;
-let announcement=null;
-let eventHistory=[];
-
-const $=id=>document.getElementById(id);
 const KEY="hamsterGame";
 
 const defaults={
- balance:0,energy:1000,maxEnergy:1000,clickPower:1,
- clickLevel:1,energyLevel:1,incomeLevel:0,income:0,
- clicks:0,earned:0,claimed:[],clickSkin:"classic",
- ownedSkins:["classic"],dailyLast:"",dailyStreak:0,
- incomeUnitVersion:2
+    balance:0,energy:1000,maxEnergy:1000,clickPower:1,
+    clickLevel:1,energyLevel:1,incomeLevel:0,income:0,
+    clicks:0,earned:0,claimed:[],
+    clickSkin:"classic",circleSkin:"classic",
+    ownedClickSkins:["classic"],ownedCircleSkins:["classic"],
+    incomeUnitVersion:2
 };
 
+const skinPrices={
+    classic:0,emerald:10000000,fire:15000000,
+    diamond:25000000,rainbow:35000000,
+    angel:40000000,cosmic:50000000,neon:60000000
+};
+
+const skinMultipliers={
+    classic:1,emerald:1.5,fire:2,diamond:2.5,
+    rainbow:3,angel:3.5,cosmic:4,neon:4.5
+};
+
+const skinIds=["classic","emerald","fire","diamond","rainbow","angel","cosmic","neon"];
+
+const skinNames={
+    classic:"Обычный",emerald:"Изумрудный",fire:"Огненный",
+    diamond:"Алмазный",rainbow:"Радужный",angel:"Ангельский",
+    cosmic:"Космический",neon:"Неоновый"
+};
+
+const skinPreviews={
+    classic:"classic-preview",emerald:"emerald-preview",
+    fire:"fire-preview",diamond:"diamond-preview",
+    rainbow:"rainbow-preview",angel:"angel-preview",
+    cosmic:"cosmic-preview",neon:"neon-preview"
+};
+
+function $(id){return document.getElementById(id)}
+
 function loadGame(){
- try{
-  const s=JSON.parse(localStorage.getItem(KEY));
-  if(!s)return {...defaults};
-  const g={...defaults,...s};
-  if(s.incomeUnitVersion!==2){
-   g.income=(Number(s.income)||0)/60;
-   g.incomeUnitVersion=2;
-  }
-  if(!Array.isArray(g.ownedSkins))g.ownedSkins=["classic"];
-  if(!g.ownedSkins.includes("classic"))g.ownedSkins.push("classic");
-  if(!g.ownedSkins.includes(g.clickSkin))g.clickSkin="classic";
-  return g;
- }catch(e){return {...defaults}}
+    try{
+        const saved=JSON.parse(localStorage.getItem(KEY));
+        if(!saved)return {...defaults};
+
+        const loaded={...defaults,...saved};
+
+        if(saved.incomeUnitVersion!==2){
+            loaded.income=(Number(saved.income)||0)/60;
+            loaded.incomeUnitVersion=2;
+        }
+
+        if(Array.isArray(saved.ownedSkins)){
+            loaded.ownedClickSkins=[...new Set([...loaded.ownedClickSkins,...saved.ownedSkins])];
+            loaded.ownedCircleSkins=[...new Set([...loaded.ownedCircleSkins,...saved.ownedSkins])];
+        }
+
+        if(!Array.isArray(saved.ownedClickSkins)){
+            loaded.ownedClickSkins=["classic"];
+            if(saved.clickSkin&&skinIds.includes(saved.clickSkin))loaded.ownedClickSkins.push(saved.clickSkin);
+        }
+
+        if(!Array.isArray(saved.ownedCircleSkins)){
+            loaded.ownedCircleSkins=["classic"];
+            if(saved.clickSkin&&skinIds.includes(saved.clickSkin))loaded.ownedCircleSkins.push(saved.clickSkin);
+        }
+
+        if(!loaded.ownedClickSkins.includes("classic"))loaded.ownedClickSkins.push("classic");
+        if(!loaded.ownedCircleSkins.includes("classic"))loaded.ownedCircleSkins.push("classic");
+
+        if(!loaded.ownedClickSkins.includes(loaded.clickSkin))loaded.clickSkin="classic";
+        if(!loaded.ownedCircleSkins.includes(loaded.circleSkin))loaded.circleSkin="classic";
+
+        return loaded;
+    }catch{return {...defaults}}
 }
 
 let game=loadGame();
 
-function formatNumber(n){
- n=Number(n)||0;
- if(Math.abs(n)<1000)return Math.floor(n).toLocaleString("ru-RU");
- const units=[[1e12,"т"],[1e9,"B"],[1e6,"м"],[1e3,"к"]];
- for(const [v,s] of units)if(Math.abs(n)>=v)return (n/v).toLocaleString("ru-RU",{maximumFractionDigits:1})+s;
- return String(n);
-}
-
-// =======================================
-// АВТОРИЗАЦИЯ И ЗАГРУЗКА ИГРОКА
-// =======================================
-
-auth.onAuthStateChanged(async user=>{
- if(!user){
-  try{await auth.signInAnonymously()}catch(e){console.error("Auth:",e)}
-  return;
- }
- currentUser=user;
- isAdmin=user.uid===ADMIN_UID;
-
- if(isAdmin){
-  $("secretLevel").style.border="1px solid #ff55ff";
- }
-
- await loadPlayer();
- listenGlobalData();
-});
-
-async function loadPlayer(){
- if(!currentUser)return;
- try{
-  const snap=await db.ref("players/"+currentUser.uid).once("value");
-  if(snap.exists()){
-   const cloud=snap.val();
-   game={...game,...cloud};
-   if(!Array.isArray(game.ownedSkins))game.ownedSkins=["classic"];
-   if(!Array.isArray(game.claimed))game.claimed=[];
-  }else{
-   await savePlayer();
-  }
-  firebaseReady=true;
-  update();
- }catch(e){
-  console.error("Ошибка загрузки игрока:",e);
-  $("eventBox").textContent="Ошибка Firebase: "+e.message;
- }
-}
-
-function playerData(){
- return {
-  balance:game.balance,
-  energy:game.energy,
-  maxEnergy:game.maxEnergy,
-  clickPower:game.clickPower,
-  clickLevel:game.clickLevel,
-  energyLevel:game.energyLevel,
-  incomeLevel:game.incomeLevel,
-  income:game.income,
-  clicks:game.clicks,
-  earned:game.earned,
-  claimed:game.claimed,
-  clickSkin:game.clickSkin,
-  ownedSkins:game.ownedSkins,
-  dailyLast:game.dailyLast,
-  dailyStreak:game.dailyStreak,
-  updatedAt:firebase.database.ServerValue.TIMESTAMP
- };
-}
-
-async function savePlayer(){
- try{
-  localStorage.setItem(KEY,JSON.stringify(game));
-  if(!currentUser||!firebaseReady)return;
-  await db.ref("players/"+currentUser.uid).update(playerData());
- }catch(e){console.error("Save:",e)}
-}
-
 function save(){
- localStorage.setItem(KEY,JSON.stringify(game));
- clearTimeout(saveTimer);
- saveTimer=setTimeout(savePlayer,800);
+    try{localStorage.setItem(KEY,JSON.stringify(game))}
+    catch(e){console.error("Ошибка сохранения",e)}
 }
 
-// =======================================
-// СОБЫТИЯ FIREBASE
-// =======================================
+function formatNumber(number){
+    number=Number(number)||0;
+    const abs=Math.abs(number);
+    if(abs<1000)return number.toLocaleString("ru-RU",{maximumFractionDigits:2});
 
-function listenGlobalData(){
- db.ref("adminAbuse/current").on("value",snap=>{
-  currentEvent=snap.val();
-  updateEventDisplay();
- });
- db.ref("adminAbuse/announcement").on("value",snap=>{
-  announcement=snap.val();
-  $("announcementBox").textContent=announcement?.text||"Глобальных объявлений нет.";
- });
- db.ref("adminAbuse/history").limitToLast(15).on("value",snap=>{
-  eventHistory=[];
-  snap.forEach(child=>eventHistory.unshift(child.val()));
-  renderHistory();
- });
- db.ref("adminAbuse/grants").on("child_added",snap=>{
-  applyGlobalGrant(snap.key,snap.val());
- });
-}
-
-function applyGlobalGrant(id,grant){
- if(!grant||!currentUser)return;
- const marker="clicker_grant_"+id+"_"+currentUser.uid;
- if(localStorage.getItem(marker))return;
- localStorage.setItem(marker,"1");
- const amount=Number(grant.amount)||0;
- if(amount<=0)return;
- game.balance+=amount;
- game.earned+=amount;
- update();
- save();
- showNotice("🎁 Получено "+formatNumber(amount)+" монет!");
-}
-
-// =======================================
-// ГЛОБАЛЬНЫЕ СОБЫТИЯ
-// =======================================
-
-function activeEvent(){
- if(!currentEvent)return null;
- if(Number(currentEvent.endAt)<=Date.now())return null;
- return currentEvent;
-}
-
-function eventMultiplier(type){
- const ev=activeEvent();
- if(!ev)return 1;
- if(ev.type===type)return Number(ev.multiplier)||1;
- if(ev.type==="mega"){
-  if(type==="click")return 10;
-  if(type==="income")return 5;
- }
- return 1;
-}
-
-function updateEventDisplay(){
- const ev=activeEvent();
- if(!ev){
-  $("eventBox").textContent="Сейчас активных событий нет.";
-  return;
- }
- const left=Math.max(0,Math.ceil((ev.endAt-Date.now())/1000));
- const min=Math.floor(left/60);
- const sec=left%60;
- $("eventBox").textContent="🌍 "+ev.name+" — осталось "+min+":"+String(sec).padStart(2,"0");
-}
-
-setInterval(updateEventDisplay,1000);
-
-function rainbowReward(){
- const r=Math.random()*100;
- if(r<60)return 100000;
- if(r<85)return 500000;
- if(r<97)return 1000000;
- return 2000000;
-}
-
-async function startGlobalEvent(){
- if(!checkAdmin())return;
- const type=$("eventType").value;
- const minutes=Math.max(1,Math.min(1440,Number($("eventDuration").value)||5));
- const config={
-  golden:{name:"⚡ Golden Hour",multiplier:2},
-  super:{name:"🚀 Super Click",multiplier:3},
-  rain:{name:"🎁 Gift Rain",multiplier:1},
-  crazy:{name:"🔥 Crazy Income",multiplier:2},
-  rainbow:{name:"🌈 Rainbow Event",multiplier:1},
-  mega:{name:"☢️ MEGA ADMIN ABUSE",multiplier:10}
- };
- const c=config[type];
- const event={
-  id:Date.now().toString(),
-  type,
-  name:c.name,
-  multiplier:c.multiplier,
-  endAt:Date.now()+minutes*60000,
-  startedAt:Date.now(),
-  reward:type==="rain"?500000:0
- };
- try{
-  await db.ref("adminAbuse/current").set(event);
-  await db.ref("adminAbuse/history").push({
-   name:event.name,startedAt:event.startedAt,duration:minutes
-  });
-  if(type==="rain"){
-   await db.ref("adminAbuse/grants/"+event.id).set({
-    amount:500000,
-    createdAt:Date.now(),
-    name:"Gift Rain"
-   });
-  }
-  $("adminStatus").textContent="Событие запущено: "+c.name;
- }catch(e){$("adminStatus").textContent="Ошибка: "+e.message}
-}
-
-async function stopGlobalEvent(){
- if(!checkAdmin())return;
- try{
-  await db.ref("adminAbuse/current").remove();
-  $("adminStatus").textContent="Событие остановлено.";
- }catch(e){$("adminStatus").textContent=e.message}
-}
-
-// =======================================
-// ГЛОБАЛЬНЫЕ ВЫДАЧИ И ОБЪЯВЛЕНИЯ
-// =======================================
-
-async function grantEveryone(){
- if(!checkAdmin())return;
- const amount=Number($("grantAmount").value);
- if(!Number.isFinite(amount)||amount<=0)return alert("Укажи положительное число.");
- const id="grant_"+Date.now();
- try{
-  await db.ref("adminAbuse/grants/"+id).set({
-   amount,createdAt:Date.now(),name:"Выдача администратора"
-  });
-  $("adminStatus").textContent="Глобальная награда отправлена.";
- }catch(e){$("adminStatus").textContent="Ошибка: "+e.message}
-}
-
-async function grantPlayer(){
- if(!checkAdmin())return;
- const uid=$("targetUid").value.trim();
- const amount=Number($("grantAmount").value);
- if(!uid||!Number.isFinite(amount)||amount<=0)return alert("Проверь UID и сумму.");
- try{
-  const ref=db.ref("players/"+uid+"/balance");
-  const snap=await ref.once("value");
-  await ref.set((Number(snap.val())||0)+amount);
-  $("adminStatus").textContent="Монеты отправлены игроку "+uid;
- }catch(e){$("adminStatus").textContent="Ошибка: "+e.message}
-}
-
-async function sendAnnouncement(){
- if(!checkAdmin())return;
- const text=$("announcementInput").value.trim();
- if(!text)return;
- try{
-  await db.ref("adminAbuse/announcement").set({
-   text,createdAt:Date.now()
-  });
-  $("adminStatus").textContent="Объявление отправлено.";
- }catch(e){$("adminStatus").textContent="Ошибка: "+e.message}
-}
-
-function renderHistory(){
- const box=$("adminHistory");
- if(!eventHistory.length){box.textContent="История пока пуста.";return}
- box.innerHTML="";
- eventHistory.forEach(item=>{
-  const div=document.createElement("div");
-  div.className="list-row";
-  div.textContent=(item.name||"Событие")+" — "+new Date(item.startedAt||Date.now()).toLocaleString("ru-RU");
-  box.appendChild(div);
- });
-}
-
-// =======================================
-// ЛИДЕРБОРД
-// =======================================
-
-async function loadLeaderboard(){
- const box=$("leaderboardList");
- box.textContent="Загрузка рейтинга...";
- try{
-  const snap=await db.ref("players").orderByChild("balance").limitToLast(100).once("value");
-  const players=[];
-  snap.forEach(child=>{
-   const p=child.val()||{};
-   players.push({
-    uid:child.key,
-    balance:Number(p.balance)||0
-   });
-  });
-  players.sort((a,b)=>b.balance-a.balance);
-  box.innerHTML="";
-  if(!players.length){box.textContent="Пока нет игроков.";return}
-  players.forEach((p,i)=>{
-   const row=document.createElement("div");
-   row.className="list-row";
-   const name=p.uid===currentUser?.uid?"Ты":("Игрок "+p.uid.slice(0,5));
-   row.innerHTML="<strong>"+(i+1)+". "+name+"</strong><strong>🪙 "+formatNumber(p.balance)+"</strong>";
-   box.appendChild(row);
-  });
- }catch(e){
-  box.textContent="Не удалось загрузить рейтинг: "+e.message;
- }
-}
-
-// =======================================
-// ЕЖЕДНЕВНЫЕ ПОДАРКИ
-// =======================================
-
-const dailyRewards=[
- {type:"coins",amount:1000,label:"1 000 монет"},
- {type:"coins",amount:2500,label:"2 500 монет"},
- {type:"energy",amount:500,label:"+500 энергии"},
- {type:"coins",amount:5000,label:"5 000 монет"},
- {type:"random",amount:0,label:"5 000–10 000 монет"},
- {type:"coins",amount:15000,label:"15 000 монет"},
- {type:"special",amount:30000,label:"30 000 монет + эффект"}
-];
-
-function utcDay(){
- return new Date().toISOString().slice(0,10);
-}
-
-function dayDifference(a,b){
- return Math.floor((Date.parse(b+"T00:00:00Z")-Date.parse(a+"T00:00:00Z"))/86400000);
-}
-
-function updateDaily(){
- const today=utcDay();
- const last=game.dailyLast;
- const diff=last?dayDifference(last,today):999;
- let streak=Number(game.dailyStreak)||0;
- if(diff>1)streak=0;
- const day=(streak%7)+1;
- $("dailyTitle").textContent="🎁 День "+day+" из 7";
- $("dailyInfo").textContent="Награда: "+dailyRewards[day-1].label;
- const claimed=last===today;
- $("dailyButton").disabled=claimed;
- $("dailyButton").textContent=claimed?"Получено":"Забрать";
-}
-
-function claimDaily(){
- const today=utcDay();
- if(game.dailyLast===today)return alert("Ты уже забрал подарок сегодня!");
- if(game.dailyLast){
-  const diff=dayDifference(game.dailyLast,today);
-  if(diff===1)game.dailyStreak=(Number(game.dailyStreak)||0)+1;
-  else game.dailyStreak=0;
- }else game.dailyStreak=0;
- const day=(game.dailyStreak%7);
- const reward=dailyRewards[day];
- if(reward.type==="coins"){
-  game.balance+=reward.amount;game.earned+=reward.amount;
- }else if(reward.type==="energy"){
-  game.energy=Math.min(game.maxEnergy,game.energy+reward.amount);
- }else if(reward.type==="random"){
-  const amount=5000+Math.floor(Math.random()*5001);
-  game.balance+=amount;game.earned+=amount;
-  alert("🎁 Ты получил "+formatNumber(amount)+" монет!");
- }else if(reward.type==="special"){
-  game.balance+=reward.amount;game.earned+=reward.amount;
-  adminClickMultiplier+=0.5;
-  setTimeout(()=>{adminClickMultiplier=Math.max(1,adminClickMultiplier-0.5);update()},60000);
-  alert("🌟 Особый эффект действует 60 секунд!");
- }
- game.dailyLast=today;
- update();
- save();
-}
-
-// =======================================
-// СКИНЫ
-// =======================================
-
-const skinData={
- classic:{name:"Обычный",price:0,mult:1,icon:"👆"},
- emerald:{name:"Изумрудный",price:10000000,mult:1.5,icon:"💚"},
- fire:{name:"Огненный",price:20000000,mult:2,icon:"🔥"},
- diamond:{name:"Алмазный",price:30000000,mult:2.5,icon:"💎"},
- rainbow:{name:"Радужный",price:25000000,mult:3,icon:"🌈"},
- angel:{name:"Ангельский",price:35000000,mult:3.5,icon:"😇"},
- cosmic:{name:"Космический",price:45000000,mult:4,icon:"🌌"},
- neon:{name:"Неоновый",price:55000000,mult:4.5,icon:"💜"}
-};
-
-function renderSkins(){
- const box=$("skinList");
- box.innerHTML="";
- Object.keys(skinData).forEach(id=>{
-  const s=skinData[id];
-  const owned=game.ownedSkins.includes(id);
-  const selected=game.clickSkin===id;
-  const row=document.createElement("div");
-  row.className="skin-option"+(selected?" selected":"");
-  const info=document.createElement("div");
-  info.className="skin-info";
-  info.innerHTML="<strong>"+s.icon+" "+s.name+"</strong><small>"+(s.price? "Цена: "+formatNumber(s.price):"Бесплатно")+"<br>"+s.mult+"x к клику</small>";
-  const btn=document.createElement("button");
-  btn.className="skin-select";
-  btn.textContent=selected?"Выбрано":owned?"Выбрать":"Купить";
-  btn.disabled=selected;
-  btn.onclick=()=>selectSkin(id);
-  row.append(info,btn);
-  box.appendChild(row);
- });
-}
-
-function selectSkin(id){
- const s=skinData[id];
- if(!s)return;
- if(!game.ownedSkins.includes(id)){
-  if(game.balance<s.price)return alert("Недостаточно монет!");
-  game.balance-=s.price;
-  game.ownedSkins.push(id);
- }
- game.clickSkin=id;
- update();save();renderSkins();
-}
-
-function openModal(id){$(id).classList.add("active")}
-function closeModal(id){$(id).classList.remove("active")}
-function outsideClose(e,id){if(e.target.id===id)closeModal(id)}
-function openSkins(){renderSkins();openModal("skinModal")}
-
-// =======================================
-// ИГРОВЫЕ МЕХАНИКИ
-// =======================================
-
-let clickCost=100,energyCost=200,incomeCost=500;
-const PRICE_MULTIPLIER=1.03;
-
-function clickReward(){
- return game.clickPower*(skinData[game.clickSkin]?.mult||1)*eventMultiplier("click")*eventMultiplier("golden");
-}
-
-function incomeReward(){
- return game.income*eventMultiplier("income")*eventMultiplier("crazy");
-}
-
-function showNotice(text){
- const old=$("announcementBox").textContent;
- $("announcementBox").textContent=text;
- setTimeout(()=>{$("announcementBox").textContent=announcement?.text||old},4000);
-}
-
-function update(){
- $("balance").textContent=Math.floor(game.balance).toLocaleString("ru-RU");
- $("energy").textContent=formatNumber(game.energy);
- $("maxEnergy").textContent=formatNumber(game.maxEnergy);
- $("energyFill").style.width=Math.max(0,Math.min(100,game.energy/game.maxEnergy*100))+"%";
- $("perClick").textContent="+"+formatNumber(clickReward());
- $("income").textContent=formatNumber(incomeReward());
- $("clicks").textContent=formatNumber(game.clicks);
- $("level").textContent=Math.floor(game.earned/10000000)+1;
- $("clickLevel").textContent=game.clickLevel;
- $("energyLevel").textContent=game.energyLevel;
- $("incomeLevel").textContent=game.incomeLevel;
- $("clickCost").textContent=formatNumber(clickCost);
- $("energyCost").textContent=formatNumber(energyCost);
- $("incomeCost").textContent=formatNumber(incomeCost);
- updateDaily();
- updateTasks();
- save();
-}
-
-$("hamster").addEventListener("pointerdown",e=>{
- e.preventDefault();
- if(game.energy<1)return;
- game.energy--;
- let reward=clickReward();
- const ev=activeEvent();
- if(ev?.type==="rainbow"){
-  const bonus=rainbowReward();
-  reward+=bonus;
-  showNotice("🌈 Радужная награда: +"+formatNumber(bonus));
- }
- game.balance+=reward;
- game.earned+=reward;
- game.clicks++;
- const pop=document.createElement("div");
- pop.className="popup";
- pop.textContent="+"+formatNumber(reward);
- pop.style.left=e.clientX+"px";
- pop.style.top=e.clientY+"px";
- document.body.appendChild(pop);
- setTimeout(()=>pop.remove(),600);
- $("hamster").classList.add("pressed");
- update();
-});
-
-window.addEventListener("pointerup",()=>$("hamster").classList.remove("pressed"));
-
-$("buyClick").onclick=()=>{
- if(game.balance<clickCost)return;
- game.balance-=clickCost;game.clickPower++;game.clickLevel++;
- clickCost=Math.ceil(clickCost*PRICE_MULTIPLIER);update();
-};
-$("buyEnergy").onclick=()=>{
- if(game.balance<energyCost)return;
- game.balance-=energyCost;game.maxEnergy+=100;game.energy=game.maxEnergy;game.energyLevel++;
- energyCost=Math.ceil(energyCost*PRICE_MULTIPLIER);update();
-};
-$("buyIncome").onclick=()=>{
- if(game.balance<incomeCost)return;
- game.balance-=incomeCost;game.income++;game.incomeLevel++;
- incomeCost=Math.ceil(incomeCost*PRICE_MULTIPLIER);update();
-};
-
-// =======================================
-// ЗАДАНИЯ
-// =======================================
-
-const tasks=[
- {id:1,title:"🎮 Начинающий игрок",goal:100,reward:500,type:"clicks"},
- {id:2,title:"🪙 Первый капитал",goal:1000,reward:1000},
- {id:3,title:"💰 Опытный игрок",goal:10000,reward:2000},
- {id:4,title:"🏆 Богач",goal:100000,reward:10000},
- {id:5,title:"💎 Миллионер",goal:1000000,reward:100000},
- {id:6,title:"👑 Магнат",goal:10000000,reward:1000000},
- {id:7,title:"🌟 Легенда",goal:100000000,reward:10000000},
- {id:8,title:"🚀 Миллиардер",goal:1000000000,reward:100000000}
-];
-
-function createTasks(){
- $("tasksContainer").innerHTML="";
- tasks.forEach(t=>{
-  const row=document.createElement("div");
-  row.className="upgrade task-item";
-  row.innerHTML="<div><strong>"+t.title+"</strong><small id='taskProgress"+t.id+"'></small></div><button id='taskButton"+t.id+"'>"+formatNumber(t.reward)+"</button>";
-  $("tasksContainer").appendChild(row);
-  $("taskButton"+t.id).onclick=()=>claimTask(t.id);
- });
-}
-
-function updateTasks(){
- tasks.forEach(t=>{
-  const progress=t.type==="clicks"?game.clicks:game.earned;
-  const claimed=game.claimed.includes(t.id);
-  const p=$("taskProgress"+t.id),b=$("taskButton"+t.id);
-  if(!p||!b)return;
-  p.textContent=formatNumber(Math.min(progress,t.goal))+" / "+formatNumber(t.goal);
-  b.disabled=progress<t.goal||claimed;
-  b.textContent=claimed?"Получено":formatNumber(t.reward);
- });
-}
-
-function claimTask(id){
- const t=tasks.find(x=>x.id===id);
- if(!t||game.claimed.includes(id))return;
- const progress=t.type==="clicks"?game.clicks:game.earned;
- if(progress<t.goal)return;
- game.balance+=t.reward;game.claimed.push(id);update();
-}
-
-// =======================================
-// ТАЙМЕРЫ
-// =======================================
-
-setInterval(()=>{
- if(document.hidden)return;
- if(game.energy<game.maxEnergy)game.energy=Math.min(game.maxEnergy,game.energy+15);
- if(game.income>0){
-  const reward=incomeReward();
-  game.balance+=reward;game.earned+=reward;
- }
- update();
-},1000);
-
-setInterval(savePlayer,10000);
-window.addEventListener("pagehide",savePlayer);
-
-// =======================================
-// НАВИГАЦИЯ
-// =======================================
-
-function showPage(id){
- document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
- $(id).classList.add("active");
-}
-
-// =======================================
-// АДМИНКА
-// =======================================
-
-let secretCount=0,secretTimer=null;
-
-function secretTap(){
- if(isAdmin){
-  openModal("adminPanel");
-  return;
- }
- secretCount++;
- clearTimeout(secretTimer);
- secretTimer=setTimeout(()=>secretCount=0,1800);
- if(secretCount>=5){
-  secretCount=0;
-  openModal("adminLogin");
- }
-}
-
-async function checkAdminPassword(){
- const email=$("adminEmail").value.trim();
- const password=$("adminPassword").value;
- if(!email||!password){
-  $("adminLoginStatus").textContent="Введи email и пароль.";
-  return;
- }
- try{
-  const result=await auth.signInWithEmailAndPassword(email,password);
-  if(result.user.uid!==ADMIN_UID){
-   await auth.signOut();
-   $("adminLoginStatus").textContent="Этот аккаунт не является администратором.";
-   return;
-  }
-  isAdmin=true;
-  closeModal("adminLogin");
-  openModal("adminPanel");
-  $("adminStatus").textContent="Администратор авторизован.";
- }catch(e){
-  $("adminLoginStatus").textContent="Ошибка входа: "+e.message;
- }
-}
-
-function checkAdmin(){
- if(!isAdmin||currentUser?.uid!==ADMIN_UID){
-  alert("Нет доступа!");
-  return false;
- }
- return true;
-}
-
-async function adminLogout(){
- if(!checkAdmin())return;
- closeModal("adminPanel");
- isAdmin=false;
- try{await auth.signOut();await auth.signInAnonymously()}catch(e){console.error(e)}
-}
-
-// =======================================
-// ЗАПУСК
-// =======================================
-
-createTasks();
-renderSkins();
-update();
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clicker</title>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-
-<style>
-*{box-sizing:border-box}
-body{
- margin:0;background:linear-gradient(160deg,#11152c,#242c55);
- color:white;font-family:Arial,sans-serif;text-align:center;
- min-height:100vh;padding:15px;
-}
-.container{max-width:520px;margin:auto}
-h1{font-size:32px;margin:15px}
-.card{
- background:#ffffff13;border:1px solid #ffffff22;
- border-radius:18px;padding:16px;margin:12px 0;
-}
-.balance{font-size:35px;font-weight:bold;color:#ffe36e}
-.small{color:#b9c4e8;font-size:13px}
-button,input{
- border:0;border-radius:12px;padding:12px;
- font-size:15px;margin:5px;
-}
-button{background:#657cff;color:white;font-weight:bold;cursor:pointer}
-button:disabled{opacity:.4}
-input{width:85%;max-width:300px;background:#fff;color:#111}
-#clicker{
- width:210px;height:210px;border-radius:50%;
- border:8px solid #ffffff66;background:linear-gradient(140deg,#ffd85e,#ff9d35);
- color:#542b00;font-size:30px;font-weight:bold;
- box-shadow:0 0 35px #ffcf5a66;
- margin:20px auto;display:flex;align-items:center;justify-content:center;
- user-select:none;touch-action:manipulation;
-}
-#clicker:active{transform:scale(.94)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.grid button{width:100%;margin:0}
-.hidden{display:none!important}
-.skin{background:#ffffff12;border-radius:12px;padding:10px;margin:7px}
-.skin button{width:90%}
-.event{color:#ffe36e;font-weight:bold}
-.row{display:flex;justify-content:space-between;gap:8px;padding:8px;border-bottom:1px solid #ffffff22}
-.row span:last-child{font-weight:bold}
-.gold{color:#ffdc59}
-#announcement{color:#ffe36e;font-weight:bold}
-#adminPanel{border:2px solid #ff5252}
-footer{font-size:12px;color:#aab2d0;margin:25px}
-</style>
-</head>
-
-<body>
-<div class="container">
-
-<h1>🖱️ CLICKER</h1>
-
-<div class="card">
- <div class="small">ТВОЙ БАЛАНС</div>
- <div class="balance" id="balance">0</div>
- <div class="small">Уровень: <span id="level">1</span></div>
- <div class="small">Энергия: <span id="energy">1000</span>/<span id="maxEnergy">1000</span></div>
- <div class="small">Доход в секунду: <span id="income">0</span></div>
-</div>
-
-<div id="announcement"></div>
-<div id="eventStatus" class="event"></div>
-
-<button id="clicker">CLICK!</button>
-<div class="small">За клик: <span id="clickReward">1</span> монет</div>
-
-<div class="card">
- <h3>⚡ Улучшения</h3>
- <div class="grid">
-  <button onclick="buyUpgrade('click')">
-   Сила клика<br>Цена: <span id="clickPrice">100</span>
-  </button>
-  <button onclick="buyUpgrade('energy')">
-   Максимум энергии<br>Цена: <span id="energyPrice">100</span>
-  </button>
-  <button onclick="buyUpgrade('income')">
-   Пассивный доход<br>Цена: <span id="incomePrice">500</span>
-  </button>
-  <button onclick="buyUpgrade('restore')">
-   Восстановить энергию<br>Цена: 50
-  </button>
- </div>
-</div>
-
-<div class="card">
- <h3>🎨 Скины</h3>
- <div id="skins"></div>
-</div>
-
-<div class="card">
- <h3>🎁 Ежедневный подарок</h3>
- <p>День серии: <b id="giftDay">1</b>/7</p>
- <p id="giftDescription"></p>
- <button id="giftButton" onclick="claimGift()">Забрать подарок</button>
-</div>
-
-<div class="card">
- <h3>🏆 Глобальный лидерборд</h3>
- <div class="small">Топ-100 игроков по балансу</div>
- <div id="myRank">Загрузка твоего места...</div>
- <div id="leaderboard">Загрузка рейтинга...</div>
-</div>
-
-<div class="card">
- <h3>👤 Твой профиль</h3>
- <input id="nickname" maxlength="18" placeholder="Твой никнейм">
- <br>
- <button onclick="saveNickname()">Сохранить ник</button>
- <p class="small" id="playerId"></p>
-</div>
-
-<div class="card">
- <h3>🌍 Глобальные события</h3>
- <div id="eventList">Загрузка событий...</div>
-</div>
-
-<div class="card">
- <h3>👑 Администратор</h3>
- <button onclick="showAdminLogin()">Войти в Admin Abuse</button>
- <div id="adminLogin" class="hidden">
-  <input id="adminEmail" type="email" placeholder="Email администратора">
-  <input id="adminPassword" type="password" placeholder="Пароль">
-  <br>
-  <button onclick="adminLogin()">Войти</button>
- </div>
- <div id="adminPanel" class="hidden card">
-  <h3>☢️ ADMIN ABUSE</h3>
-  <select id="eventSelect">
-   <option value="golden">⚡ Golden Hour</option>
-   <option value="super">🚀 Super Click</option>
-   <option value="gift">🎁 Gift Rain</option>
-   <option value="income">🔥 Crazy Income</option>
-   <option value="rainbow">🌈 Rainbow Event</option>
-   <option value="mega">☢️ MEGA ADMIN ABUSE</option>
-  </select>
-  <br>
-  <input id="eventDuration" type="number" value="5" min="1" max="120" placeholder="Длительность в минутах">
-  <br>
-  <button onclick="startGlobalEvent()">Запустить событие</button>
-  <button onclick="stopGlobalEvent()">Остановить событие</button>
-  <hr>
-  <h4>💰 Выдать монеты</h4>
-  <input id="giveAmount" type="number" placeholder="Количество монет">
-  <br>
-  <input id="giveUid" placeholder="UID игрока (пусто = всем)">
-  <br>
-  <button onclick="giveCoins()">Выдать монеты</button>
-  <hr>
-  <h4>📢 Объявление</h4>
-  <input id="announcementText" placeholder="Текст объявления">
-  <br>
-  <button onclick="sendAnnouncement()">Отправить всем</button>
-  <br>
-  <button onclick="adminLogout()">Выйти из админки</button>
- </div>
-</div>
-
-<footer>Clicker • Firebase Global Game</footer>
-</div>
-
-<script>
-// FIREBASE
-const firebaseConfig = {
- apiKey: "AIzaSyCgZkG60vQkGTm9_tC2DNeVUYuVbz5ZMUY",
- authDomain: "clicker-91693.firebaseapp.com",
- databaseURL: "https://clicker-91693-default-rtdb.europe-west1.firebasedatabase.app",
- projectId: "clicker-91693",
- storageBucket: "clicker-91693.firebasestorage.app",
- messagingSenderId: "981787618868",
- appId: "1:981787618868:web:4e5b00e7bc820f4e3a2461",
- measurementId: "G-YGS2VVRMNY"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth();
-const db=firebase.database();
-
-const ADMIN_UID="FzYDg0McacZwXOPSptOwUxnGlXm2";
-
-let uid=null;
-let isAdmin=false;
-let playerRef=null;
-let eventData=null;
-let player={
- balance:0,energy:1000,maxEnergy:1000,
- clickPower:1,clickLevel:1,energyLevel:1,
- incomeLevel:0,income:0,clicks:0,earned:0,
- nickname:"Игрок",giftDay:0,lastGift:0,
- ownedSkins:["classic"],clickSkin:"classic"
-};
-
-const skins=[
- {id:"classic",name:"Классический",price:0,mult:1,color:"#ffbd45"},
- {id:"emerald",name:"Изумруд",price:10000000,mult:1.5,color:"#20c878"},
- {id:"fire",name:"Огонь",price:20000000,mult:2,color:"#ff542f"},
- {id:"rainbow",name:"Радуга",price:25000000,mult:3,color:"rainbow"},
- {id:"diamond",name:"Алмаз",price:30000000,mult:2.5,color:"#49dfff"},
- {id:"angel",name:"Ангел",price:35000000,mult:3.5,color:"#ffffff"},
- {id:"cosmic",name:"Космос",price:45000000,mult:4,color:"#9b68ff"},
- {id:"neon",name:"Неон",price:55000000,mult:4.5,color:"#ff44dc"}
-];
-
-const gifts=[
- {text:"1 000 монет",coins:1000},
- {text:"2 500 монет",coins:2500},
- {text:"+500 энергии",energy:500},
- {text:"5 000 монет",coins:5000},
- {text:"Случайно: 5 000–10 000 монет",random:true},
- {text:"15 000 монет",coins:15000},
- {text:"30 000 монет + особый эффект",coins:30000}
-];
-
-const fmt=n=>Math.floor(Number(n)||0).toLocaleString("ru-RU");
-
-function save(){
- if(!playerRef)return;
- playerRef.update({
-  balance:player.balance,
-  energy:player.energy,
-  maxEnergy:player.maxEnergy,
-  clickPower:player.clickPower,
-  clickLevel:player.clickLevel,
-  energyLevel:player.energyLevel,
-  incomeLevel:player.incomeLevel,
-  income:player.income,
-  clicks:player.clicks,
-  earned:player.earned,
-  nickname:player.nickname,
-  giftDay:player.giftDay,
-  lastGift:player.lastGift,
-  ownedSkins:player.ownedSkins,
-  clickSkin:player.clickSkin
- }).catch(console.error);
- render();
-}
-
-function render(){
- document.getElementById("balance").textContent=fmt(player.balance);
- document.getElementById("energy").textContent=fmt(player.energy);
- document.getElementById("maxEnergy").textContent=fmt(player.maxEnergy);
- document.getElementById("level").textContent=player.clickLevel;
- document.getElementById("income").textContent=fmt(player.income);
- document.getElementById("clickReward").textContent=fmt(getReward());
- document.getElementById("clickPrice").textContent=fmt(100*player.clickLevel);
- document.getElementById("energyPrice").textContent=fmt(100*player.energyLevel);
- document.getElementById("incomePrice").textContent=fmt(500*(player.incomeLevel+1));
- document.getElementById("giftDay").textContent=player.giftDay+1;
- document.getElementById("giftDescription").textContent=gifts[player.giftDay]?.text||gifts[0].text;
- document.getElementById("nickname").value=player.nickname;
- document.getElementById("playerId").textContent="UID: "+(uid||"");
- renderSkins();
-}
-
-function getReward(){
- let mult=1;
- if(player.clickSkin){
-  const skin=skins.find(s=>s.id===player.clickSkin);
-  if(skin)mult*=skin.mult;
- }
- if(eventData && eventData.endAt>Date.now()){
-  if(eventData.type==="golden")mult*=2;
-  if(eventData.type==="super")mult*=3;
-  if(eventData.type==="mega")mult*=10;
- }
- return Math.floor(player.clickPower*mult);
-}
-
-document.getElementById("clicker").addEventListener("click",()=>{
- if(!uid)return;
- if(player.energy<=0)return;
- let reward=getReward();
- if(eventData && eventData.type==="rainbow" && eventData.endAt>Date.now()){
-  const r=Math.random()*100;
-  reward+=r<60?100000:r<85?500000:r<97?1000000:2000000;
- }
- player.balance+=reward;
- player.earned+=reward;
- player.clicks++;
- player.energy--;
- save();
-});
-
-function buyUpgrade(type){
- if(type==="click"){
-  let price=100*player.clickLevel;
-  if(player.balance<price)return alert("Недостаточно монет!");
-  player.balance-=price;
-  player.clickLevel++;
-  player.clickPower++;
- }
- if(type==="energy"){
-  let price=100*player.energyLevel;
-  if(player.balance<price)return alert("Недостаточно монет!");
-  player.balance-=price;
-  player.energyLevel++;
-  player.maxEnergy+=250;
-  player.energy=player.maxEnergy;
- }
- if(type==="income"){
-  let price=500*(player.incomeLevel+1);
-  if(player.balance<price)return alert("Недостаточно монет!");
-  player.balance-=price;
-  player.incomeLevel++;
-  player.income+=5;
- }
- if(type==="restore"){
-  if(player.balance<50)return alert("Недостаточно монет!");
-  player.balance-=50;
-  player.energy=player.maxEnergy;
- }
- save();
-}
-
-function renderSkins(){
- const box=document.getElementById("skins");
- box.innerHTML="";
- skins.forEach(s=>{
-  const owned=player.ownedSkins.includes(s.id);
-  const equipped=player.clickSkin===s.id;
-  const div=document.createElement("div");
-  div.className="skin";
-  div.innerHTML=`
-   <b>${s.name}</b><br>
-   <span class="small">Множитель x${s.mult} • ${owned?"Куплен":fmt(s.price)+" монет"}</span><br>
-   <button>${equipped?"Выбран":owned?"Выбрать":"Купить"}</button>`;
-  div.querySelector("button").onclick=()=>{
-   if(owned){
-    player.clickSkin=s.id;
-   }else{
-    if(player.balance<s.price)return alert("Недостаточно монет!");
-    player.balance-=s.price;
-    player.ownedSkins.push(s.id);
-    player.clickSkin=s.id;
-   }
-   save();
-  };
-  box.appendChild(div);
- });
-}
-
-function saveNickname(){
- const n=document.getElementById("nickname").value.trim().slice(0,18);
- if(!n)return alert("Введи никнейм");
- player.nickname=n;
- save();
-}
-
-function claimGift(){
- const now=Date.now();
- if(player.lastGift && now-player.lastGift<86400000){
-  return alert("Следующий подарок будет доступен через 24 часа после прошлого.");
- }
- player.giftDay=(player.giftDay+1)%7;
- const gift=gifts[player.giftDay===0?6:player.giftDay-1];
- // Для первого получения используем день 1.
- const day=player.giftDay===0?7:player.giftDay;
- if(gift.coins)player.balance+=gift.coins;
- if(gift.energy)player.energy=Math.min(player.maxEnergy,player.energy+gift.energy);
- if(gift.random)player.balance+=5000+Math.floor(Math.random()*5001);
- if(day===7)document.body.style.background="linear-gradient(160deg,#41205b,#1a3d60)";
- player.lastGift=now;
- save();
- alert("Подарок получен!");
-}
-
-// Пассивный доход и энергия
-setInterval(()=>{
- if(!uid)return;
- if(player.income>0){
-  let mult=1;
-  if(eventData && eventData.endAt>Date.now()){
-   if(eventData.type==="income")mult=2;
-   if(eventData.type==="mega")mult=5;
-  }
-  player.balance+=player.income*mult;
-  player.earned+=player.income*mult;
- }
- player.energy=Math.min(player.maxEnergy,player.energy+1);
- save();
-},1000);
-
-// Firebase авторизация
-auth.onAuthStateChanged(async user=>{
- if(!user){
-  try{await auth.signInAnonymously();}catch(e){console.error(e);}
-  return;
- }
- uid=user.uid;
- isAdmin=uid===ADMIN_UID;
- playerRef=db.ref("players/"+uid);
-
- playerRef.once("value").then(s=>{
-  const data=s.val();
-  if(data)player={...player,...data};
-  render();
-  save();
- });
-
- listenLeaderboard();
- listenEvents();
- listenAnnouncement();
-});
-
-// ЛИДЕРБОРД
-function listenLeaderboard(){
- db.ref("players").orderByChild("balance").limitToLast(100)
- .on("value",snap=>{
-  let list=[];
-  snap.forEach(child=>{
-   list.push({uid:child.key,...child.val()});
-  });
-  list.reverse();
-  const box=document.getElementById("leaderboard");
-  box.innerHTML="";
-  let myPosition=-1;
-  list.forEach((p,i)=>{
-   if(p.uid===uid)myPosition=i+1;
-   const row=document.createElement("div");
-   row.className="row";
-   const name=document.createElement("span");
-   name.textContent=(i+1)+". "+(p.nickname||"Игрок")+(p.uid===ADMIN_UID?" 👑":"");
-   const amount=document.createElement("span");
-   amount.textContent=fmt(p.balance||0);
-   row.append(name,amount);
-   box.appendChild(row);
-  });
-  document.getElementById("myRank").textContent=
-   myPosition>0?"Твоё место: #"+myPosition:"Ты пока не в топ-100";
- });
-}
-
-// ГЛОБАЛЬНЫЕ СОБЫТИЯ
-function listenEvents(){
- db.ref("adminAbuse/current").on("value",snap=>{
-  eventData=snap.val();
-  updateEventUI();
- });
-}
-
-function updateEventUI(){
- const box=document.getElementById("eventStatus");
- const list=document.getElementById("eventList");
- if(!eventData || !eventData.endAt || eventData.endAt<Date.now()){
-  box.textContent="Сейчас глобальных событий нет";
-  list.textContent="Ожидай следующего события!";
-  return;
- }
- const names={
-  golden:"⚡ GOLDEN HOUR",
-  super:"🚀 SUPER CLICK",
-  gift:"🎁 GIFT RAIN",
-  income:"🔥 CRAZY INCOME",
-  rainbow:"🌈 RAINBOW EVENT",
-  mega:"☢️ MEGA ADMIN ABUSE"
- };
- const remaining=Math.max(0,Math.ceil((eventData.endAt-Date.now())/1000));
- box.textContent=names[eventData.type]+" • "+remaining+" сек.";
- list.textContent=names[eventData.type]+" активно!";
-}
-
-setInterval(updateEventUI,1000);
-
-function listenAnnouncement(){
- db.ref("adminAbuse/announcement").on("value",snap=>{
-  const a=snap.val();
-  document.getElementById("announcement").textContent=a?.text||"";
- });
-}
-
-// АДМИН
-function showAdminLogin(){
- document.getElementById("adminLogin").classList.toggle("hidden");
-}
-
-async function adminLogin(){
- const email=document.getElementById("adminEmail").value;
- const password=document.getElementById("adminPassword").value;
- try{
-  const result=await auth.signInWithEmailAndPassword(email,password);
-  if(result.user.uid!==ADMIN_UID){
-   await auth.signOut();
-   alert("У этого аккаунта нет прав администратора.");
-   return;
-  }
-  isAdmin=true;
-  document.getElementById("adminPanel").classList.remove("hidden");
-  document.getElementById("adminLogin").classList.add("hidden");
-  alert("Добро пожаловать, администратор!");
- }catch(e){
-  alert("Ошибка входа: "+e.message);
- }
-}
-
-function requireAdmin(){
- if(!isAdmin || auth.currentUser?.uid!==ADMIN_UID){
-  alert("Нет доступа!");
-  return false;
- }
- return true;
-}
-
-async function startGlobalEvent(){
- if(!requireAdmin())return;
- const type=document.getElementById("eventSelect").value;
- const minutes=Math.max(1,Math.min(120,Number(document.getElementById("eventDuration").value)||5));
- const data={
-  type,
-  startAt:Date.now(),
-  endAt:Date.now()+minutes*60000,
-  startedBy:ADMIN_UID
- };
- try{
-  await db.ref("adminAbuse/current").set(data);
-  await db.ref("adminAbuse/history").push({
-   type,startAt:data.startAt,endAt:data.endAt
-  });
-  if(type==="gift")await grantGiftRain();
-  alert("Глобальное событие запущено!");
- }catch(e){alert("Ошибка: "+e.message);}
-}
-
-async function stopGlobalEvent(){
- if(!requireAdmin())return;
- try{
-  await db.ref("adminAbuse/current").remove();
- }catch(e){alert(e.message);}
-}
-
-async function grantGiftRain(){
- // Клиентская выдача не является защищённой серверной транзакцией.
- // Для настоящей защиты от повторных начислений нужна Cloud Function.
- const snap=await db.ref("players").once("value");
- const updates={};
- snap.forEach(child=>{
-  const p=child.val()||{};
-  const uid2=child.key;
-  const marker="giftRain_"+eventData.startAt;
-  if(!p[marker]){
-   updates[uid2+"/balance"]=(Number(p.balance)||0)+500000;
-   updates[uid2+"/"+marker]=true;
-  }
- });
- await db.ref("players").update(updates);
-}
-
-async function giveCoins(){
- if(!requireAdmin())return;
- const amount=Math.floor(Number(document.getElementById("giveAmount").value));
- const target=document.getElementById("giveUid").value.trim();
- if(!Number.isFinite(amount)||amount<=0)return alert("Укажи положительное количество монет.");
- try{
-  if(target){
-   const ref=db.ref("players/"+target);
-   const snap=await ref.child("balance").once("value");
-   await ref.child("balance").set((Number(snap.val())||0)+amount);
-  }else{
-   const snap=await db.ref("players").once("value");
-   const updates={};
-   snap.forEach(child=>{
-    updates[child.key+"/balance"]=(Number(child.child("balance").val())||0)+amount;
-   });
-   await db.ref("players").update(updates);
-  }
-  alert("Монеты выданы!");
- }catch(e){alert("Ошибка: "+e.message);}
-}
-
-async function sendAnnouncement(){
- if(!requireAdmin())return;
- const text=document.getElementById("announcementText").value.trim();
- if(!text)return alert("Напиши объявление.");
- try{
-  await db.ref("adminAbuse/announcement").set({
-   text:text.slice(0,250),
-   time:Date.now()
-  });
-  alert("Объявление отправлено!");
- }catch(e){alert(e.message);}
-}
-
-async function adminLogout(){
- if(!requireAdmin())return;
- isAdmin=false;
- document.getElementById("adminPanel").classList.add("hidden");
- await auth.signOut();
-}
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>CLICKER</title>
-
-<style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-}
-
-body {
-    background: #101225;
-    color: white;
-    font-family: Arial, sans-serif;
-    font-size: 17px;
-}
-
-.app {
-    max-width: 430px;
-    min-height: 100vh;
-    margin: auto;
-    padding: 20px 18px 100px;
-    background: linear-gradient(180deg,#242944,#151728);
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.logo {
-    font-size: 20px;
-    font-weight: bold;
-}
-
-.brand {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 9px;
-}
-
-.skins-open {
-    width: 58px;
-    height: 58px;
-    padding: 4px;
-    border-radius: 13px;
-    background: linear-gradient(145deg,#8b5cff,#5425c9);
-    color: white;
-    border: 2px solid #b89aff;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 2px;
-    box-shadow: 0 0 12px #742cff88;
-}
-
-.skins-open span {
-    font-size: 24px;
-}
-
-.skins-open small {
-    font-size: 11px;
-    color: white;
-}
-
-.skin-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 500;
-    background: #000a;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    padding: 15px;
-}
-
-.skin-modal.active {
-    display: flex;
-}
-
-.skin-window {
-    width: 100%;
-    max-width: 360px;
-    max-height: 85vh;
-    overflow-y: auto;
-    background: linear-gradient(180deg,#303858,#191d32);
-    border: 2px solid #7852dc;
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 0 30px #672cff77;
-}
-
-.skin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 18px;
-}
-
-.skin-header h2 {
-    font-size: 23px;
-}
-
-.skin-close {
-    width: 35px;
-    height: 35px;
-    padding: 0;
-    font-size: 21px;
-    background: #484d69;
-    color: white;
-}
-
-.skin-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 11px;
-    border-radius: 13px;
-    background: #292f4b;
-    margin-bottom: 10px;
-    border: 2px solid transparent;
-}
-
-.skin-option.selected {
-    border-color: #ffe16a;
-    background: #3b3b59;
-}
-
-.skin-preview {
-    width: 45px;
-    height: 45px;
-    flex-shrink: 0;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
-}
-
-.classic-preview {
-    background: linear-gradient(145deg,#777f99,#343b55);
-}
-
-.fire-preview {
-    background: linear-gradient(145deg,#ff9b35,#d52b19);
-}
-
-.angel-preview {
-    background: linear-gradient(145deg,#ffffff,#8ccfff);
-}
-
-.emerald-preview {
-    background: linear-gradient(145deg,#42ff9b,#087b52);
-}
-
-.diamond-preview {
-    background: linear-gradient(145deg,#b9ffff,#398bff);
-}
-
-.rainbow-preview {
-    background: linear-gradient(145deg,#ff5555,#9b55ff,#42eaff);
-}
-
-.cosmic-preview {
-    background: linear-gradient(145deg,#19104f,#a044ff,#171d55);
-}
-
-.neon-preview {
-    background: linear-gradient(145deg,#00fff0,#a000ff,#ff00a8);
-    box-shadow: 0 0 12px #00fff088;
-}
-
-.skin-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.skin-info strong {
-    display: block;
-    font-size: 14px;
-}
-
-.skin-info small {
-    display: block;
-    color: #b9bfd5;
-    margin-top: 5px;
-    font-size: 11px;
-}
-
-.skin-select {
-    min-width: 76px;
-    padding: 9px 5px;
-    font-size: 12px;
-    flex-shrink: 0;
-}
-
-.click-effect {
-    position: fixed;
-    pointer-events: none;
-    z-index: 300;
-    font-size: 26px;
-    animation: clickEffectAnimation .75s ease-out forwards;
-    will-change: transform, opacity;
-}
-
-@keyframes clickEffectAnimation {
-    0% {
-        opacity: 1;
-        transform: translate(-50%,-50%) scale(.4) rotate(0deg);
-    }
-    50% {
-        opacity: 1;
-        transform: translate(-50%,-80%) scale(1.4) rotate(25deg);
-    }
-    100% {
-        opacity: 0;
-        transform: translate(-50%,-150%) scale(.5) rotate(70deg);
-    }
-}
-
-.click-ring {
-    position: fixed;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 299;
-    transform: translate(-50%,-50%);
-    animation: ringAnimation .55s ease-out forwards;
-    will-change: width, height, opacity;
-}
-
-@keyframes ringAnimation {
-    from {
-        width: 10px;
-        height: 10px;
-        opacity: 1;
-    }
-    to {
-        width: 100px;
-        height: 100px;
-        opacity: 0;
-    }
-}
-
-.effect-hidden {
-    display: none !important;
-}
-
-.level {
-    padding: 9px 13px;
-    border-radius: 20px;
-    background: #343a59;
-    font-size: 15px;
-    white-space: nowrap;
-    cursor: pointer;
-    touch-action: manipulation;
-}
-
-.balance-box {
-    text-align: center;
-    margin: 30px 0 22px;
-}
-
-.balance-title {
-    color: #aeb5d0;
-}
-
-.balance {
-    margin-top: 8px;
-    color: #ffe16a;
-    font-size: 36.5px;
-    font-weight: bold;
-    white-space: nowrap;
-    transition: font-size 0.2s;
-}
-
-.balance.small {
-    font-size: clamp(14px, 5vw, 28px);
-}
-
-.hamster-wrap {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 20px auto 26px;
-}
-
-.hamster {
-    width: min(78vw,310px);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 6px solid #692bff;
-    background: #00113e;
-    box-shadow: 0 0 20px #742cff,
-                0 0 40px #4c20ff99;
-    touch-action: none;
-    cursor: pointer;
-    transition: transform .06s;
-}
-
-.hamster.pressed {
-    transform: scale(.96);
-}
-
-.stats {
-    display: flex;
-    justify-content: space-between;
-    background: #292f4b;
-    padding: 15px 8px;
-    border-radius: 15px;
-    gap: 4px;
-}
-
-.stat {
-    text-align: center;
-    min-width: 0;
-    flex: 1;
-}
-
-.stat small {
-    display: block;
-    color: #aeb5d0;
-    margin-bottom: 7px;
-    font-size: 12px;
-}
-
-.stat strong {
-    display: block;
-    font-size: clamp(13px, 3.5vw, 17px);
-    overflow-wrap: anywhere;
-}
-
-.energy-box {
-    margin: 20px 0;
-}
-
-.energy-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 9px;
-}
-
-.energy-bar {
-    height: 13px;
-    background: #353b59;
-    border-radius: 20px;
-    overflow: hidden;
-}
-
-.energy-fill {
-    height: 100%;
-    background: linear-gradient(90deg,#ffca55,#ffe78c);
-    transition: width .2s;
-}
-
-.section-title {
-    font-size: 23px;
-    margin: 25px 0 15px;
-}
-
-.page {
-    display: none;
-}
-
-.page.active {
-    display: block;
-}
-
-.upgrade {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #292f4b;
-    padding: 14px;
-    border-radius: 15px;
-    margin-bottom: 12px;
-    gap: 10px;
-}
-
-.upgrade-icon {
-    font-size: 29px;
-}
-
-.upgrade small {
-    display: block;
-    color: #aeb5d0;
-    margin-top: 5px;
-}
-
-button {
-    border: none;
-    border-radius: 10px;
-    padding: 11px 12px;
-    background: #f8d45b;
-    color: #27263b;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-button:disabled {
-    background: #666b80;
-    color: white;
-}
-
-button:active {
-    transform: scale(.96);
-}
-
-.nav {
-    position: fixed;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 430px;
-    display: flex;
-    justify-content: space-around;
-    padding: 13px 4px;
-    background: #20243a;
-    z-index: 50;
-}
-
-.nav-item {
-    text-align: center;
-    color: #b3bad2;
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.nav-item span {
-    display: block;
-    font-size: 23px;
-    margin-bottom: 4px;
-}
-
-.popup {
-    position: fixed;
-    pointer-events: none;
-    color: #ffe16a;
-    font-size: 24px;
-    font-weight: bold;
-    animation: rise .55s forwards;
-    z-index: 100;
-}
-
-@keyframes rise {
-    to {
-        opacity: 0;
-        transform: translateY(-60px);
-    }
-}
-
-.task-item {
-    position: relative;
-}
-
-.task-item.task-completed::after {
-    content: "";
-    position: absolute;
-    top: 7px;
-    right: 7px;
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    background: #ff3030;
-    box-shadow: 0 0 8px #ff3030;
-    z-index: 5;
-}
-
-.bonus-coin {
-    position: fixed;
-    z-index: 200;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    background: linear-gradient(145deg,#ffe98a,#ffae00);
-    border: 3px solid #fff0a8;
-    box-shadow: 0 0 12px #ffdb45,
-                0 0 25px #ffb70099;
-    cursor: pointer;
-    padding: 0;
-    transition: left 1.4s linear, top 1.4s linear;
-    animation: coinAppear .4s ease-out;
-}
-
-@keyframes coinAppear {
-    from {
-        opacity: 0;
-        transform: scale(.3);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.bonus-reward {
-    position: fixed;
-    z-index: 210;
-    pointer-events: none;
-    color: #ffe16a;
-    font-size: 24px;
-    font-weight: bold;
-    text-shadow: 0 2px 5px #000, 0 0 10px #ffb700;
-    white-space: nowrap;
-    animation: bonusRewardAnimation 1.1s ease-out forwards;
-}
-
-@keyframes bonusRewardAnimation {
-    0% {
-        opacity: 0;
-        transform: translate(-50%, 0) scale(.5);
-    }
-    20% {
-        opacity: 1;
-        transform: translate(-50%, -15px) scale(1.2);
-    }
-    70% {
-        opacity: 1;
-        transform: translate(-50%, -45px) scale(1);
-    }
-    100% {
-        opacity: 0;
-        transform: translate(-50%, -65px) scale(.9);
-    }
-}
-
-/* ADMIN ABUSE */
-
-.admin-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    background: #000c;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    padding: 15px;
-}
-
-.admin-modal.active {
-    display: flex;
-}
-
-.admin-window {
-    width: 100%;
-    max-width: 360px;
-    max-height: 85vh;
-    overflow-y: auto;
-    padding: 20px;
-    border-radius: 20px;
-    background: linear-gradient(180deg,#3b176b,#17152e);
-    border: 2px solid #bd55ff;
-    box-shadow: 0 0 30px #a000ff99;
-}
-
-.admin-window h2 {
-    color: #e7aaff;
-    margin-bottom: 15px;
-}
-
-.admin-window input {
-    width: 100%;
-    padding: 13px;
-    border-radius: 10px;
-    border: 2px solid #a64dff;
-    background: #17152e;
-    color: white;
-    font-size: 16px;
-    margin: 10px 0;
-    user-select: text;
-}
-
-.admin-window button {
-    width: 100%;
-    margin-top: 9px;
-    padding: 13px;
-    background: linear-gradient(90deg,#a000ff,#ed35d6);
-    color: white;
-}
-
-.admin-window button:disabled {
-    opacity: .5;
-}
-
-.admin-close {
-    background: #45415e !important;
-}
-
-.admin-status {
-    color: #aaffc9;
-    margin: 10px 0;
-    font-size: 13px;
-    overflow-wrap: anywhere;
-}
-</style>
-</head>
-
-<body>
-
-<div class="app">
-
-<header class="header">
-    <div class="brand">
-        <div class="logo">CLICKER</div>
-
-        <button class="skins-open" onclick="openSkins()">
-            <span>🎨</span>
-            <small>СКИНЫ</small>
-        </button>
-    </div>
-
-    <div class="level" id="secretLevel">
-        ⭐ Ур. <span id="level">1</span>
-    </div>
-</header>
-
-<section id="home" class="page active">
-
-    <div class="balance-box">
-        <div class="balance-title">ТВОЙ БАЛАНС</div>
-
-        <div class="balance" id="balanceBox">
-            🪙 <span id="balance">0</span>
-        </div>
-    </div>
-
-    <div class="hamster-wrap">
-        <div class="hamster" id="hamster"></div>
-    </div>
-
-    <div class="stats">
-
-        <div class="stat">
-            <small>За клик</small>
-            <strong id="perClick">+1</strong>
-        </div>
-
-        <div class="stat">
-            <small>Доход/сек</small>
-            <strong id="income">0</strong>
-        </div>
-
-        <div class="stat">
-            <small>Клики</small>
-            <strong id="clicks">0</strong>
-        </div>
-
-    </div>
-
-    <div class="energy-box">
-
-        <div class="energy-info">
-            <strong>⚡ Энергия</strong>
-
-            <strong>
-                <span id="energy">1000</span>/
-                <span id="maxEnergy">1000</span>
-            </strong>
-        </div>
-
-        <div class="energy-bar">
-            <div class="energy-fill" id="energyFill"></div>
-        </div>
-
-    </div>
-
-</section>
-
-<section id="shop" class="page">
-
-    <h2 class="section-title">🚀 Улучшения</h2>
-
-    <div class="upgrade">
-        <div>
-            <div class="upgrade-icon">👆</div>
-            <strong>Сильный палец</strong>
-            <small>Уровень: <span id="clickLevel">1</span></small>
-        </div>
-
-        <button id="buyClick">
-            🪙 <span id="clickCost">100</span>
-        </button>
-    </div>
-
-    <div class="upgrade">
-        <div>
-            <div class="upgrade-icon">⚡</div>
-            <strong>Больше энергии</strong>
-            <small>Уровень: <span id="energyLevel">1</span></small>
-        </div>
-
-        <button id="buyEnergy">
-            🪙 <span id="energyCost">200</span>
-        </button>
-    </div>
-
-    <div class="upgrade">
-        <div>
-            <div class="upgrade-icon">🏭</div>
-            <strong>Автоматический доход</strong>
-            <small>Уровень: <span id="incomeLevel">0</span></small>
-            <small>+1 монета в секунду за покупку</small>
-        </div>
-
-        <button id="buyIncome">
-            🪙 <span id="incomeCost">500</span>
-        </button>
-    </div>
-
-</section>
-
-<section id="tasks" class="page">
-    <h2 class="section-title">🎯 Задания</h2>
-    <div id="tasksContainer"></div>
-</section>
-
-<section id="friends" class="page">
-    <h2 class="section-title">👥 Друзья</h2>
-
-    <div class="upgrade">
-        Приглашай друзей!
-    </div>
-</section>
-
-</div>
-
-<!-- ОКНО СКИНОВ -->
-
-<div class="skin-modal" id="skinModal" onclick="closeSkinsOutside(event)">
-
-    <div class="skin-window">
-
-        <div class="skin-header">
-            <h2>🎨 Скины кликов</h2>
-            <button class="skin-close" onclick="closeSkins()">✕</button>
-        </div>
-
-        <div class="skin-option" id="skin-classic">
-            <div class="skin-preview classic-preview">👆</div>
-            <div class="skin-info">
-                <strong>Обычный</strong>
-                <small>Бесплатно<br>1x к клику</small>
-            </div>
-            <button class="skin-select" onclick="selectSkin('classic')">Выбрать</button>
-        </div>
-
-        <div class="skin-option" id="skin-emerald">
-            <div class="skin-preview emerald-preview">💚</div>
-            <div class="skin-info">
-                <strong>Изумрудный</strong>
-                <small>Цена: 10м<br>1.5x к клику</small>
-            </div>
-            <button class="skin-select" onclick="selectSkin('emerald')">Купить</button>
-        </div>
-
-        <div class="skin-option" id="skin-fire">
-            <div class="skin-preview fire-preview">🔥</div>
-            <div class="skin-info">
-                <strong>Огненный</strong>
-                <small>Цена: 20м<br>2x к клику</small>
-            </div>
-            <button class="skin-select" onclick="selectSkin('fire')">Купить</button>
-        </div>
-
-        <div class="skin-option" id="skin-diamond">
-            <div class="skin-preview diamond-preview">💎</div>
-            <div class="skin-info">
-                <strong>Алмазный</strong>
-                <small>Цена: 30м<br>2.5x к клику</small>
-            </div>
-            <button class="skin-select" onclick="selectSkin('diamond')">Купить</button>
-        </div>
-
-        <div class="skin-option" id="skin-rainbow">
-            <div class="skin-preview rainbow-preview">🌈</div>
-            <div class="skin-info">
-                <strong>Радужный</strong>
-                <small>Цена: 25м<br>3x к клику</small>
-            </div>
-            <button class="skin-select" onclick="selectSkin('rainbow')">Купить</button>
-        </div>
-
-        <div class="skin-option" id="skin-angel">
-            <div class="skin-preview angel-preview">😇</div>
-            <div class="skin-info">
-                <strong>Ангельский</strong>
-                <small>Цена: 35м<br>3.5x к клику</small>
-            </div>
-            <button class="skin-select" onclick="selectSkin('angel')">Купить</button>
-        </div>
-
-        <div class="skin-option" id="skin-cosmic">
-            <div class="skin-preview cosmic-preview">🌌</div>
-            <div class="skin-info">
-                <strong>Космический</strong>
-                <small>Цена: 45м<br>4x к клику</small>
-            </div>
-            <button class="skin-select" onclick="selectSkin('cosmic')">Купить</button>
-        </div>
-
-        <div class="skin-option" id="skin-neon">
-            <div class="skin-preview neon-preview">💜</div>
-            <div class="skin-info">
-                <strong>Неоновый</strong>
-                <small>Цена: 55м<br>4.5x к клику</small>
-            </div>
-            <button class="skin-select" onclick="selectSkin('neon')">Купить</button>
-        </div>
-
-    </div>
-</div>
-
-<!-- ОКНО ВХОДА ADMIN -->
-
-<div class="admin-modal" id="adminLogin">
-    <div class="admin-window">
-
-        <h2>🔐 Вход администратора</h2>
-
-        <input
-            type="password"
-            id="adminPassword"
-            placeholder="Введи пароль"
-            autocomplete="off"
-        >
-
-        <button onclick="checkAdminPassword()">
-            👑 Войти
-        </button>
-
-        <button class="admin-close" onclick="closeAdminLogin()">
-            Отмена
-        </button>
-
-        <div class="admin-status" id="adminLoginStatus"></div>
-
-    </div>
-</div>
-
-<!-- ADMIN PANEL -->
-
-<div class="admin-modal" id="adminPanel">
-    <div class="admin-window">
-
-        <h2>👑 ADMIN PANEL</h2>
-
-        <div class="admin-status">
-            Добро пожаловать, администратор!
-        </div>
-
-        <button onclick="adminAddCoins()">
-            💰 Выдать монеты
-        </button>
-
-        <button onclick="adminSetClickMultiplier()">
-            ⚡ Изменить множитель кликов
-        </button>
-
-        <button onclick="adminRestoreEnergy()">
-            🔋 Восстановить энергию
-        </button>
-
-        <button onclick="adminGiveSkin()">
-            🎨 Выдать скин
-        </button>
-
-        <button onclick="startAdminAbuse()">
-            🌪️ START ADMIN ABUSE
-        </button>
-
-        <button onclick="stopAdminAbuse()">
-            ⛔ STOP ADMIN ABUSE
-        </button>
-
-        <div class="admin-status" id="adminStatus">
-            Событие не запущено.
-        </div>
-
-        <button class="admin-close" onclick="closeAdminPanel()">
-            Закрыть админку
-        </button>
-
-        <button class="admin-close" onclick="adminLogout()">
-            Выйти из режима администратора
-        </button>
-
-    </div>
-</div>
-
-<nav class="nav">
-
-    <div class="nav-item" onclick="showPage('home')">
-        <span>🏠</span>Главная
-    </div>
-
-    <div class="nav-item" onclick="showPage('shop')">
-        <span>🚀</span>Улучшения
-    </div>
-
-    <div class="nav-item" onclick="showPage('tasks')">
-        <span>🎯</span>Задания
-    </div>
-
-    <div class="nav-item" onclick="showPage('friends')">
-        <span>👥</span>Друзья
-    </div>
-
-</nav>
-
-<script>
-
-// СОХРАНЕНИЕ
-
-const KEY = "hamsterGame";
-
-const defaults = {
-    balance: 0,
-    energy: 1000,
-    maxEnergy: 1000,
-    clickPower: 1,
-    clickLevel: 1,
-    energyLevel: 1,
-    incomeLevel: 0,
-    income: 0,
-    clicks: 0,
-    earned: 0,
-    claimed: [],
-    clickSkin: "classic",
-    ownedSkins: ["classic"],
-    incomeUnitVersion: 2
-};
-
-function loadGame() {
-    try {
-        const saved = JSON.parse(localStorage.getItem(KEY));
-
-        if (!saved) {
-            return {...defaults};
-        }
-
-        const loaded = {...defaults, ...saved};
-
-        if (saved.incomeUnitVersion !== 2) {
-            loaded.income = (Number(saved.income) || 0) / 60;
-            loaded.incomeUnitVersion = 2;
-        }
-
-        if (!Array.isArray(saved.ownedSkins)) {
-            loaded.ownedSkins = ["classic"];
-
-            if (
-                saved.clickSkin &&
-                ["fire", "angel", "emerald", "diamond", "rainbow", "cosmic", "neon"].includes(saved.clickSkin)
-            ) {
-                loaded.ownedSkins.push(saved.clickSkin);
-            }
-        }
-
-        if (!loaded.ownedSkins.includes("classic")) {
-            loaded.ownedSkins.push("classic");
-        }
-
-        if (!loaded.ownedSkins.includes(loaded.clickSkin)) {
-            loaded.clickSkin = "classic";
-        }
-
-        return loaded;
-
-    } catch {
-        return {...defaults};
-    }
-}
-
-let game = loadGame();
-
-
-// СОКРАЩЕНИЕ ЧИСЕЛ
-
-function formatNumber(number) {
-
-    number = Number(number) || 0;
-
-    const abs = Math.abs(number);
-
-    if (abs < 1000) {
-        return number.toLocaleString("ru-RU", {
-            maximumFractionDigits: 2
-        });
-    }
-
-    const units = [
-        {value: 1e12, suffix: "т"},
-        {value: 1e9, suffix: "B"},
-        {value: 1e6, suffix: "м"},
-        {value: 1e3, suffix: "к"}
+    const units=[
+        {value:1e12,suffix:"т"},{value:1e9,suffix:"B"},
+        {value:1e6,suffix:"м"},{value:1e3,suffix:"к"}
     ];
 
-    for (const unit of units) {
-
-        if (abs >= unit.value) {
-
-            const result = number / unit.value;
-
-            return result.toLocaleString("ru-RU", {
-                maximumFractionDigits: result < 100 ? 1 : 0
-            }) + unit.suffix;
+    for(const unit of units){
+        if(abs>=unit.value){
+            const result=number/unit.value;
+            return result.toLocaleString("ru-RU",{maximumFractionDigits:result<100?1:0})+unit.suffix;
         }
     }
-
     return number.toString();
 }
 
-
-// ФОРМАТ ЧИСЕЛ ДЛЯ ЗАДАНИЙ
-
-function formatTaskNumber(number) {
-    return formatNumber(number);
+function getClickReward(){
+    return game.clickPower*(skinMultipliers[game.clickSkin]||1)*adminClickMultiplier;
 }
 
-
-// НАСТРОЙКИ СКИНОВ
-
-const skinPrices = {
-    classic: 0,
-    emerald: 10000000,
-    fire: 20000000,
-    rainbow: 25000000,
-    diamond: 30000000,
-    angel: 35000000,
-    cosmic: 45000000,
-    neon: 55000000
-};
-
-const skinMultipliers = {
-    classic: 1,
-    emerald: 1.5,
-    fire: 2,
-    diamond: 2.5,
-    rainbow: 3,
-    angel: 3.5,
-    cosmic: 4,
-    neon: 4.5
-};
-
-
-// ADMIN МНОЖИТЕЛИ
-
-let adminClickMultiplier = 1;
-let adminIncomeMultiplier = 1;
-let adminAbuseTimer = null;
-
-
-function getClickReward() {
-    const multiplier = skinMultipliers[game.clickSkin] || 1;
-
-    return game.clickPower *
-           multiplier *
-           adminClickMultiplier;
+function applyCircleSkin(){
+    const circle=$("hamster");
+    if(!circle)return;
+    circle.classList.remove(...skinIds.map(id=>"skin-"+id));
+    circle.classList.add("skin-"+game.circleSkin);
 }
 
-function formatClickNumber(number) {
-    return formatNumber(number);
-}
+let currentSkinShop="click";
 
-const skinIds = [
-    "classic",
-    "emerald",
-    "fire",
-    "diamond",
-    "rainbow",
-    "angel",
-    "cosmic",
-    "neon"
-];
-
-
-// СКИНЫ КЛИКОВ
-
-function openSkins() {
+function openSkins(type){
+    currentSkinShop=type;
+    $("skinTitle").textContent=type==="click"?"✨ Скины кликов":"🔮 Скины кружка";
+    renderSkinShop();
     $("skinModal").classList.add("active");
-    updateSkinMenu();
 }
 
-function closeSkins() {
-    $("skinModal").classList.remove("active");
+function closeSkins(){$("skinModal").classList.remove("active")}
+
+function closeSkinsOutside(event){
+    if(event.target.id==="skinModal")closeSkins();
 }
 
-function closeSkinsOutside(event) {
-    if (event.target.id === "skinModal") {
-        closeSkins();
-    }
+function getOwnedSkins(){
+    return currentSkinShop==="click"?game.ownedClickSkins:game.ownedCircleSkins;
 }
 
-function selectSkin(skin) {
-
-    if (!skinIds.includes(skin)) return;
-
-    if (game.ownedSkins.includes(skin)) {
-
-        game.clickSkin = skin;
-
-        save();
-        update();
-        updateSkinMenu();
-
-        return;
-    }
-
-    const price = skinPrices[skin];
-
-    if (game.balance < price) {
-        alert(
-            "Недостаточно монет! Нужно: " +
-            formatNumber(price)
-        );
-        return;
-    }
-
-    game.balance -= price;
-
-    game.ownedSkins.push(skin);
-
-    game.clickSkin = skin;
-
-    save();
-    update();
-    updateSkinMenu();
+function getSelectedSkin(){
+    return currentSkinShop==="click"?game.clickSkin:game.circleSkin;
 }
 
-function updateSkinMenu() {
-
-    skinIds.forEach(skin => {
-
-        const option = $("skin-" + skin);
-
-        if (!option) return;
-
-        const button = option.querySelector("button");
-
-        const owned = game.ownedSkins.includes(skin);
-        const selected = game.clickSkin === skin;
-
-        if (selected) {
-
-            option.classList.add("selected");
-
-            button.textContent = "Выбрано";
-            button.disabled = true;
-
-        } else {
-
-            option.classList.remove("selected");
-
-            if (owned) {
-
-                button.textContent = "Выбрать";
-                button.disabled = false;
-
-            } else {
-
-                button.textContent = "Купить";
-                button.disabled = game.balance < skinPrices[skin];
-            }
-        }
-    });
-}
-
-
-// ОПТИМИЗИРОВАННЫЕ ЭФФЕКТЫ КЛИКА
-
-const clickParticlePool = [];
-const clickRingPool = [];
-
-const MAX_PARTICLES = 40;
-const MAX_RINGS = 20;
-
-const effects = {
-
-    fire: {
-        symbols: ["🔥", "🔥", "✨", "💥"],
-        color: "#ff6a24",
-        shadow: "#ff4b18"
-    },
-
-    angel: {
-        symbols: ["✨", "🪽", "☁️", "⭐"],
-        color: "#ffffff",
-        shadow: "#8bdfff"
-    },
-
-    emerald: {
-        symbols: ["💚", "💎", "✳️", "✨"],
-        color: "#38ff9b",
-        shadow: "#00d879"
-    },
-
-    diamond: {
-        symbols: ["💎", "💠", "✨", "❄️"],
-        color: "#75eaff",
-        shadow: "#398bff"
-    },
-
-    rainbow: {
-        symbols: ["🌈", "✨", "💖", "⭐"],
-        color: "#ff70e8",
-        shadow: "#8c4dff"
-    },
-
-    cosmic: {
-        symbols: ["🌌", "🌠", "🪐", "✨"],
-        color: "#a66bff",
-        shadow: "#5425ff"
-    },
-
-    neon: {
-        symbols: ["💜", "⚡", "💠", "✨"],
-        color: "#00fff0",
-        shadow: "#ff00e6"
-    }
-};
-
-
-// Получение свободного элемента из пула
-
-function getFreeEffect(pool, className, maxCount) {
-
-    let element = pool.find(
-        item => item.dataset.active !== "true"
-    );
-
-    if (!element) {
-
-        if (pool.length >= maxCount) {
-            return null;
-        }
-
-        element = document.createElement("div");
-
-        element.className = className + " effect-hidden";
-        element.dataset.active = "false";
-
-        element.addEventListener("animationend", () => {
-
-            element.classList.add("effect-hidden");
-            element.dataset.active = "false";
-
-        });
-
-        document.body.appendChild(element);
-
-        pool.push(element);
-    }
-
-    element.dataset.active = "true";
-
-    element.classList.remove("effect-hidden");
-
-    element.style.animation = "none";
-
-    void element.offsetWidth;
-
-    element.style.animation = "";
-
-    return element;
-}
-
-
-// Создание эффекта клика
-
-function createClickEffect(x, y) {
-
-    if (game.clickSkin === "classic") {
-        return;
-    }
-
-    const effect = effects[game.clickSkin];
-
-    if (!effect) return;
-
-
-    // Частицы
-
-    for (let i = 0; i < 4; i++) {
-
-        const particle = getFreeEffect(
-            clickParticlePool,
-            "click-effect",
-            MAX_PARTICLES
-        );
-
-        if (!particle) continue;
-
-        particle.textContent =
-            effect.symbols[
-                Math.floor(Math.random() * effect.symbols.length)
-            ];
-
-        particle.style.left =
-            (x + (Math.random() - 0.5) * 65) + "px";
-
-        particle.style.top =
-            (y + (Math.random() - 0.5) * 55) + "px";
-
-        particle.style.filter =
-            `drop-shadow(0 0 7px ${effect.shadow})`;
-
-        particle.style.fontSize =
-            (20 + Math.random() * 13) + "px";
-    }
-
-
-    // Кольцо
-
-    const ring = getFreeEffect(
-        clickRingPool,
-        "click-ring",
-        MAX_RINGS
-    );
-
-    if (ring) {
-
-        ring.style.left = x + "px";
-        ring.style.top = y + "px";
-
-        ring.style.border =
-            `3px solid ${effect.color}`;
-
-        ring.style.boxShadow =
-            `0 0 15px ${effect.shadow}`;
-    }
-}
-
-
-// ЦЕНЫ УЛУЧШЕНИЙ
-
-const PRICE_MULTIPLIER = 1.03;
-
-let clickCost = Math.ceil(
-    100 * PRICE_MULTIPLIER ** (game.clickLevel - 1)
-);
-
-let energyCost = Math.ceil(
-    200 * PRICE_MULTIPLIER ** (game.energyLevel - 1)
-);
-
-let incomeCost = Math.ceil(
-    500 * PRICE_MULTIPLIER ** game.incomeLevel
-);
-
-
-// ЗВУК ТАПА
-
-let audioContext = null;
-
-function playTapSound() {
-    try {
-        if (!audioContext) {
-            audioContext = new (
-                window.AudioContext ||
-                window.webkitAudioContext
-            )();
-        }
-
-        if (audioContext.state === "suspended") {
-            audioContext.resume();
-        }
-
-        const oscillator = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-
-        oscillator.type = "sine";
-
-        oscillator.frequency.setValueAtTime(
-            650,
-            audioContext.currentTime
-        );
-
-        oscillator.frequency.exponentialRampToValueAtTime(
-            300,
-            audioContext.currentTime + 0.08
-        );
-
-        gain.gain.setValueAtTime(
-            0.18,
-            audioContext.currentTime
-        );
-
-        gain.gain.exponentialRampToValueAtTime(
-            0.001,
-            audioContext.currentTime + 0.09
-        );
-
-        oscillator.connect(gain);
-        gain.connect(audioContext.destination);
-
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.09);
-
-    } catch (error) {
-        console.log("Звук недоступен", error);
-    }
-}
-
-
-// СОХРАНЕНИЕ
-
-function save() {
-    try {
-        localStorage.setItem(KEY, JSON.stringify(game));
-    } catch(e) {
-        console.error("Ошибка сохранения", e);
-    }
-}
-
-
-// ОБНОВЛЕНИЕ
-
-function $(id) {
-    return document.getElementById(id);
-}
-
-function update() {
-
-    const balanceElement = $("balance");
-    const balanceBox = $("balanceBox");
-
-    // ОСНОВНОЙ БАЛАНС ВСЕГДА ПОКАЗЫВАЕТСЯ ПОЛНЫМ ЧИСЛОМ
-
-    const balanceValue = Math.floor(game.balance);
-
-    balanceElement.textContent =
-        balanceValue.toLocaleString("ru-RU");
-
-    if (balanceValue >= 1000000000) {
-        balanceBox.classList.add("small");
-    } else {
-        balanceBox.classList.remove("small");
-    }
-
-    // ЭНЕРГИЯ
-
-    $("energy").textContent = formatNumber(Math.floor(game.energy));
-    $("maxEnergy").textContent = formatNumber(game.maxEnergy);
-
-    $("energyFill").style.width =
-        (game.energy / game.maxEnergy * 100) + "%";
-
-    // ДОХОД ЗА КЛИК
-
-    $("perClick").textContent =
-        "+" + formatClickNumber(getClickReward());
-
-    // ДОХОД В СЕКУНДУ
-
-    $("income").textContent =
-        formatNumber(game.income * adminIncomeMultiplier);
-
-    // КОЛИЧЕСТВО КЛИКОВ
-
-    $("clicks").textContent =
-        formatNumber(game.clicks);
-
-    // УРОВЕНЬ
-
-    $("level").textContent =
-        Math.floor(game.earned / 10000000) + 1;
-
-    $("clickLevel").textContent = formatNumber(game.clickLevel);
-    $("energyLevel").textContent = formatNumber(game.energyLevel);
-    $("incomeLevel").textContent = formatNumber(game.incomeLevel);
-
-    // ЦЕНЫ УЛУЧШЕНИЙ
-
-    $("clickCost").textContent = formatNumber(clickCost);
-    $("energyCost").textContent = formatNumber(energyCost);
-    $("incomeCost").textContent = formatNumber(incomeCost);
-
-    updateTasks();
-    updateSkinMenu();
-
-    save();
-}
-
-
-// ЗАДАНИЯ
-
-const tasks = [
-    {id: 1, title: "🎮 Начинающий игрок", goal: 100, reward: 500, type: "clicks"},
-    {id: 2, title: "🪙 Первый капитал", goal: 1000, reward: 1000},
-    {id: 3, title: "💰 Опытный игрок", goal: 10000, reward: 2000},
-    {id: 4, title: "🏆 Богач", goal: 100000, reward: 10000},
-    {id: 5, title: "💎 Миллионер", goal: 1000000, reward: 100000},
-    {id: 6, title: "👑 Магнат", goal: 10000000, reward: 1000000},
-    {id: 7, title: "🌟 Легенда", goal: 100000000, reward: 10000000},
-    {id: 8, title: "🚀 Миллиардер", goal: 1000000000, reward: 100000000},
-    {id: 9, title: "🌌 Космический магнат", goal: 10000000000, reward: 1000000000},
-    {id: 10, title: "👑 Император монет", goal: 100000000000, reward: 10000000000},
-    {id: 11, title: "🏅 Легенда галактики", goal: 1000000000000, reward: 100000000000},
-    {id: 12, title: "🌠 Повелитель вселенной", goal: 10000000000000, reward: 1000000000000}
-];
-
-function createTasks() {
-
-    const container = $("tasksContainer");
-
-    container.innerHTML = "";
-
-    tasks.forEach(task => {
-
-        const item = document.createElement("div");
-
-        item.className = "upgrade task-item";
-
-        item.innerHTML = `
-            <div>
-                <strong>${task.title}</strong>
-                <small id="taskProgress${task.id}">
-                    0 / ${formatTaskNumber(task.goal)}
-                </small>
+function renderSkinShop(){
+    const container=$("skinList");
+    container.innerHTML="";
+
+    skinIds.forEach(skin=>{
+        const owned=getOwnedSkins().includes(skin);
+        const selected=getSelectedSkin()===skin;
+        const option=document.createElement("div");
+        option.className="skin-option"+(selected?" selected":"");
+
+        const priceText=skin==="classic"?"Бесплатно":"Цена: "+formatNumber(skinPrices[skin]);
+        const multiplierText=currentSkinShop==="click"
+            ?skinMultipliers[skin]+"x к клику"
+            :"Только внешний вид кружка";
+
+        option.innerHTML=`
+            <div class="skin-preview ${skinPreviews[skin]}"></div>
+            <div class="skin-info">
+                <strong>${skinNames[skin]}</strong>
+                <small>${priceText}<br>${multiplierText}</small>
             </div>
-
-            <button id="taskButton${task.id}">
-                ${formatTaskNumber(task.reward)}
-            </button>
+            <button class="skin-select">${selected?"Выбрано":owned?"Выбрать":"Купить"}</button>
         `;
 
-        container.appendChild(item);
-
-        $("taskButton" + task.id).onclick = () => {
-            claimTask(task.id);
-        };
+        const button=option.querySelector("button");
+        button.disabled=selected||(!owned&&game.balance<skinPrices[skin]);
+        button.onclick=()=>selectSkin(skin);
+        container.appendChild(option);
     });
 }
 
-function updateTasks() {
+function selectSkin(skin){
+    if(!skinIds.includes(skin))return;
 
-    tasks.forEach(task => {
+    const ownedList=getOwnedSkins();
 
-        const currentProgress = task.type === "clicks"
-            ? game.clicks
-            : game.earned;
-
-        const progress = Math.min(
-            Math.floor(currentProgress),
-            task.goal
-        );
-
-        const progressElement = $("taskProgress" + task.id);
-        const button = $("taskButton" + task.id);
-
-        if (!progressElement || !button) return;
-
-        progressElement.textContent =
-            formatTaskNumber(progress) +
-            " / " +
-            formatTaskNumber(task.goal);
-
-        const claimed = game.claimed.includes(task.id);
-        const completed = currentProgress >= task.goal;
-
-        const taskCard = progressElement.closest(".task-item");
-
-        if (completed && !claimed) {
-            taskCard.classList.add("task-completed");
-        } else {
-            taskCard.classList.remove("task-completed");
+    if(ownedList.includes(skin)){
+        if(currentSkinShop==="click")game.clickSkin=skin;
+        else{
+            game.circleSkin=skin;
+            applyCircleSkin();
         }
+        save();update();renderSkinShop();
+        return;
+    }
 
-        button.disabled = !completed || claimed;
+    const price=skinPrices[skin];
+    if(game.balance<price){
+        alert("Недостаточно монет! Нужно: "+formatNumber(price));
+        return;
+    }
 
-        button.textContent = claimed
-            ? "Получено"
-            : formatTaskNumber(task.reward);
+    game.balance-=price;
+
+    if(currentSkinShop==="click"){
+        game.ownedClickSkins.push(skin);
+        game.clickSkin=skin;
+    }else{
+        game.ownedCircleSkins.push(skin);
+        game.circleSkin=skin;
+        applyCircleSkin();
+    }
+
+    save();update();renderSkinShop();
+}
+
+const effects={
+    fire:{symbols:["🔥","🔥","✨","💥"],color:"#ff6a24",shadow:"#ff4b18"},
+    angel:{symbols:["✨","🪽","☁️","⭐"],color:"#fff",shadow:"#8bdfff"},
+    emerald:{symbols:["💚","💎","✳️","✨"],color:"#38ff9b",shadow:"#00d879"},
+    diamond:{symbols:["💎","💠","✨","❄️"],color:"#75eaff",shadow:"#398bff"},
+    rainbow:{symbols:["🌈","✨","💖","⭐"],color:"#ff70e8",shadow:"#8c4dff"},
+    cosmic:{symbols:["🌌","🌠","🪐","✨"],color:"#a66bff",shadow:"#5425ff"},
+    neon:{symbols:["💜","⚡","💠","✨"],color:"#00fff0",shadow:"#ff00e6"}
+};
+
+function createClickEffect(x,y){
+    if(game.clickSkin==="classic")return;
+    const effect=effects[game.clickSkin];
+    if(!effect)return;
+
+    for(let i=0;i<4;i++){
+        const particle=document.createElement("div");
+        particle.className="click-effect";
+        particle.textContent=effect.symbols[Math.floor(Math.random()*effect.symbols.length)];
+        particle.style.left=(x+(Math.random()-.5)*65)+"px";
+        particle.style.top=(y+(Math.random()-.5)*55)+"px";
+        particle.style.filter=`drop-shadow(0 0 7px ${effect.shadow})`;
+        document.body.appendChild(particle);
+        setTimeout(()=>particle.remove(),800);
+    }
+
+    const ring=document.createElement("div");
+    ring.className="click-ring";
+    ring.style.left=x+"px";
+    ring.style.top=y+"px";
+    ring.style.border=`3px solid ${effect.color}`;
+    ring.style.boxShadow=`0 0 15px ${effect.shadow}`;
+    document.body.appendChild(ring);
+    setTimeout(()=>ring.remove(),600);
+}
+
+const PRICE_MULTIPLIER=1.03;
+let clickCost=Math.ceil(100*PRICE_MULTIPLIER**(game.clickLevel-1));
+let energyCost=Math.ceil(200*PRICE_MULTIPLIER**(game.energyLevel-1));
+let incomeCost=Math.ceil(500*PRICE_MULTIPLIER**game.incomeLevel);
+
+let audioContext=null;
+
+function playTapSound(){
+    try{
+        if(!audioContext)audioContext=new (window.AudioContext||window.webkitAudioContext)();
+        if(audioContext.state==="suspended")audioContext.resume();
+
+        const oscillator=audioContext.createOscillator();
+        const gain=audioContext.createGain();
+
+        oscillator.type="sine";
+        oscillator.frequency.setValueAtTime(650,audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(300,audioContext.currentTime+.08);
+        gain.gain.setValueAtTime(.18,audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.001,audioContext.currentTime+.09);
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime+.09);
+    }catch(error){console.log("Звук недоступен",error)}
+}
+
+function update(){
+    const balanceElement=$("balance");
+    const balanceBox=$("balanceBox");
+    const balanceValue=Math.floor(game.balance);
+
+    balanceElement.textContent=balanceValue.toLocaleString("ru-RU");
+    balanceBox.classList.toggle("small",balanceValue>=1000000000);
+
+    $("energy").textContent=formatNumber(Math.floor(game.energy));
+    $("maxEnergy").textContent=formatNumber(game.maxEnergy);
+    $("energyFill").style.width=(game.energy/game.maxEnergy*100)+"%";
+    $("perClick").textContent="+"+formatNumber(getClickReward());
+    $("income").textContent=formatNumber(game.income*adminIncomeMultiplier);
+    $("clicks").textContent=formatNumber(game.clicks);
+    $("level").textContent=Math.floor(game.earned/10000000)+1;
+
+    $("clickLevel").textContent=formatNumber(game.clickLevel);
+    $("energyLevel").textContent=formatNumber(game.energyLevel);
+    $("incomeLevel").textContent=formatNumber(game.incomeLevel);
+    $("clickCost").textContent=formatNumber(clickCost);
+    $("energyCost").textContent=formatNumber(energyCost);
+    $("incomeCost").textContent=formatNumber(incomeCost);
+
+    applyCircleSkin();
+    updateTasks();
+    renderSkinShop();
+    save();
+}
+
+const tasks=[
+    {id:1,title:"🎮 Начинающий игрок",goal:100,reward:500,type:"clicks"},
+    {id:2,title:"🪙 Первый капитал",goal:1000,reward:1000},
+    {id:3,title:"💰 Опытный игрок",goal:10000,reward:2000},
+    {id:4,title:"🏆 Богач",goal:100000,reward:10000},
+    {id:5,title:"💎 Миллионер",goal:1000000,reward:100000},
+    {id:6,title:"👑 Магнат",goal:10000000,reward:1000000},
+    {id:7,title:"🌟 Легенда",goal:100000000,reward:10000000},
+    {id:8,title:"🚀 Миллиардер",goal:1000000000,reward:100000000},
+    {id:9,title:"🌌 Космический магнат",goal:10000000000,reward:1000000000},
+    {id:10,title:"👑 Император монет",goal:100000000000,reward:10000000000},
+    {id:11,title:"🏅 Легенда галактики",goal:1000000000000,reward:100000000000},
+    {id:12,title:"🌠 Повелитель вселенной",goal:10000000000000,reward:1000000000000}
+];
+
+function createTasks(){
+    const container=$("tasksContainer");
+    container.innerHTML="";
+
+    tasks.forEach(task=>{
+        const item=document.createElement("div");
+        item.className="upgrade task-item";
+        item.innerHTML=`
+            <div>
+                <strong>${task.title}</strong>
+                <small id="taskProgress${task.id}">0 / ${formatNumber(task.goal)}</small>
+            </div>
+            <button id="taskButton${task.id}">${formatNumber(task.reward)}</button>
+        `;
+        container.appendChild(item);
+        $("taskButton"+task.id).onclick=()=>claimTask(task.id);
     });
 }
 
-function claimTask(id) {
+function updateTasks(){
+    tasks.forEach(task=>{
+        const current=task.type==="clicks"?game.clicks:game.earned;
+        const progress=Math.min(Math.floor(current),task.goal);
+        const progressElement=$("taskProgress"+task.id);
+        const button=$("taskButton"+task.id);
+        if(!progressElement||!button)return;
 
-    const task = tasks.find(t => t.id === id);
+        progressElement.textContent=formatNumber(progress)+" / "+formatNumber(task.goal);
 
-    if (!task) return;
+        const claimed=game.claimed.includes(task.id);
+        const completed=current>=task.goal;
+        const card=progressElement.closest(".task-item");
 
-    if (game.claimed.includes(id)) return;
+        card.classList.toggle("task-completed",completed&&!claimed);
+        button.disabled=!completed||claimed;
+        button.textContent=claimed?"Получено":formatNumber(task.reward);
+    });
+}
 
-    const currentProgress = task.type === "clicks"
-        ? game.clicks
-        : game.earned;
+function claimTask(id){
+    const task=tasks.find(t=>t.id===id);
+    if(!task||game.claimed.includes(id))return;
 
-    if (currentProgress >= task.goal) {
-
-        game.balance += task.reward;
-
+    const current=task.type==="clicks"?game.clicks:game.earned;
+    if(current>=task.goal){
+        game.balance+=task.reward;
         game.claimed.push(id);
-
         update();
     }
 }
 
+let bonusCoin=null;
+let bonusMoveInterval=null;
+let bonusDisappearTimeout=null;
+let bonusTimer=null;
 
-// СОКРАЩЕНИЕ ЧИСЕЛ ДЛЯ БОНУСА
-
-function formatBonusNumber(number) {
-    return formatNumber(number);
-}
-
-
-// ЛЕТАЮЩАЯ БОНУСНАЯ МОНЕТКА
-
-let bonusCoin = null;
-let bonusMoveInterval = null;
-let bonusDisappearTimeout = null;
-
-function getRandomPosition() {
-
-    const size = 48;
-
-    const maxX = Math.max(5, window.innerWidth - size - 5);
-
-    const maxY = Math.max(
-        70,
-        window.innerHeight - size - 90
-    );
-
-    return {
-        x: Math.random() * maxX,
-        y: Math.random() * maxY
+function getRandomPosition(){
+    const size=48;
+    return{
+        x:Math.random()*Math.max(5,window.innerWidth-size-5),
+        y:Math.random()*Math.max(70,window.innerHeight-size-90)
     };
 }
 
-function moveBonusCoin() {
-
-    if (!bonusCoin || document.hidden) return;
-
-    const position = getRandomPosition();
-
-    bonusCoin.style.left = position.x + "px";
-    bonusCoin.style.top = position.y + "px";
+function moveBonusCoin(){
+    if(!bonusCoin||document.hidden)return;
+    const p=getRandomPosition();
+    bonusCoin.style.left=p.x+"px";
+    bonusCoin.style.top=p.y+"px";
 }
 
-function spawnBonusCoin() {
+function spawnBonusCoin(){
+    if(bonusCoin||document.hidden)return;
 
-    if (bonusCoin || document.hidden) return;
+    const coin=document.createElement("button");
+    coin.className="bonus-coin";
+    coin.textContent="🪙";
 
-    const coin = document.createElement("button");
-
-    coin.className = "bonus-coin";
-    coin.textContent = "🪙";
-    coin.setAttribute("aria-label", "Получить бонусные монеты");
-
-    const startPosition = getRandomPosition();
-
-    coin.style.left = startPosition.x + "px";
-    coin.style.top = startPosition.y + "px";
-
+    const p=getRandomPosition();
+    coin.style.left=p.x+"px";
+    coin.style.top=p.y+"px";
     document.body.appendChild(coin);
+    bonusCoin=coin;
 
-    bonusCoin = coin;
-
-    setTimeout(() => {
-
-        if (bonusCoin !== coin || document.hidden) return;
-
+    setTimeout(()=>{
+        if(bonusCoin!==coin||document.hidden)return;
         moveBonusCoin();
+        bonusMoveInterval=setInterval(()=>{
+            if(bonusCoin===coin&&!document.hidden)moveBonusCoin();
+        },1400);
+    },100);
 
-        bonusMoveInterval = setInterval(() => {
-            if (bonusCoin === coin && !document.hidden) {
-                moveBonusCoin();
-            }
-        }, 1400);
+    bonusDisappearTimeout=setTimeout(removeBonusCoin,7000);
 
-    }, 100);
-
-    bonusDisappearTimeout = setTimeout(() => {
-        removeBonusCoin();
-    }, 7000);
-
-    coin.addEventListener("pointerdown", function(e) {
-
+    coin.addEventListener("pointerdown",e=>{
         e.preventDefault();
         e.stopPropagation();
-
-        if (bonusCoin !== coin) return;
-
-        collectBonusCoin();
+        if(bonusCoin===coin)collectBonusCoin();
     });
 }
 
-function removeBonusCoin() {
-
-    if (bonusMoveInterval) {
-        clearInterval(bonusMoveInterval);
-        bonusMoveInterval = null;
-    }
-
-    if (bonusDisappearTimeout) {
-        clearTimeout(bonusDisappearTimeout);
-        bonusDisappearTimeout = null;
-    }
-
-    if (bonusCoin) {
-        bonusCoin.remove();
-        bonusCoin = null;
-    }
+function removeBonusCoin(){
+    if(bonusMoveInterval){clearInterval(bonusMoveInterval);bonusMoveInterval=null}
+    if(bonusDisappearTimeout){clearTimeout(bonusDisappearTimeout);bonusDisappearTimeout=null}
+    if(bonusCoin){bonusCoin.remove();bonusCoin=null}
 }
 
-function collectBonusCoin() {
+function collectBonusCoin(){
+    if(!bonusCoin||document.hidden)return;
 
-    if (!bonusCoin || document.hidden) return;
+    const rect=bonusCoin.getBoundingClientRect();
+    const reward=Math.floor(game.balance*.10);
 
-    const rect = bonusCoin.getBoundingClientRect();
+    game.balance+=reward;
+    game.earned+=reward;
 
-    const centerX = rect.left + rect.width / 2;
-    const topY = rect.top - 5;
-
-    const reward = Math.floor(game.balance * 0.10);
-
-    game.balance += reward;
-    game.earned += reward;
-
-    const rewardText = document.createElement("div");
-
-    rewardText.className = "bonus-reward";
-    rewardText.textContent = "+" + formatBonusNumber(reward);
-
-    rewardText.style.left = centerX + "px";
-    rewardText.style.top = topY + "px";
-
-    document.body.appendChild(rewardText);
-
-    setTimeout(() => {
-        rewardText.remove();
-    }, 1200);
+    const text=document.createElement("div");
+    text.className="bonus-reward";
+    text.textContent="+"+formatNumber(reward);
+    text.style.left=(rect.left+rect.width/2)+"px";
+    text.style.top=(rect.top-5)+"px";
+    document.body.appendChild(text);
+    setTimeout(()=>text.remove(),1200);
 
     removeBonusCoin();
-
     update();
 }
 
-
-// ТАЙМЕР БОНУСНОЙ МОНЕТКИ
-
-let bonusTimer = null;
-
-function startBonusTimer() {
-
-    if (bonusTimer) return;
-
-    bonusTimer = setInterval(() => {
-        if (!document.hidden) {
-            spawnBonusCoin();
-        }
-    }, 60000);
+function startBonusTimer(){
+    if(bonusTimer)return;
+    bonusTimer=setInterval(()=>{
+        if(!document.hidden)spawnBonusCoin();
+    },60000);
 }
 
-function stopBonusTimer() {
-
-    if (bonusTimer) {
-        clearInterval(bonusTimer);
-        bonusTimer = null;
-    }
+function stopBonusTimer(){
+    if(bonusTimer){clearInterval(bonusTimer);bonusTimer=null}
 }
 
+const hamster=$("hamster");
 
-// НАЖАТИЯ НА КРУГ
-
-const hamster = $("hamster");
-
-hamster.addEventListener("pointerdown", e => {
-
+hamster.addEventListener("pointerdown",e=>{
     e.preventDefault();
-
-    if (document.hidden || game.energy < 1) return;
+    if(document.hidden||game.energy<1)return;
 
     playTapSound();
-
     game.energy--;
 
-    const clickReward = getClickReward();
-
-    game.balance += clickReward;
-    game.earned += clickReward;
+    const reward=getClickReward();
+    game.balance+=reward;
+    game.earned+=reward;
     game.clicks++;
 
-    createClickEffect(e.clientX, e.clientY);
+    createClickEffect(e.clientX,e.clientY);
 
-    const popup = document.createElement("div");
-
-    popup.className = "popup";
-    popup.textContent = "+" + formatClickNumber(clickReward);
-    popup.style.left = e.clientX + "px";
-    popup.style.top = e.clientY + "px";
-
+    const popup=document.createElement("div");
+    popup.className="popup";
+    popup.textContent="+"+formatNumber(reward);
+    popup.style.left=e.clientX+"px";
+    popup.style.top=e.clientY+"px";
     document.body.appendChild(popup);
-
-    setTimeout(() => popup.remove(), 550);
+    setTimeout(()=>popup.remove(),550);
 
     hamster.classList.add("pressed");
-
     update();
 });
 
-window.addEventListener("pointerup", () => {
-    hamster.classList.remove("pressed");
-});
+window.addEventListener("pointerup",()=>hamster.classList.remove("pressed"));
+window.addEventListener("pointercancel",()=>hamster.classList.remove("pressed"));
 
-window.addEventListener("pointercancel", () => {
-    hamster.classList.remove("pressed");
-});
-
-
-// ПОКУПКА СИЛЬНОГО ПАЛЬЦА
-
-$("buyClick").onclick = () => {
-
-    if (document.hidden || game.balance < clickCost) return;
-
-    game.balance -= clickCost;
+$("buyClick").onclick=()=>{
+    if(document.hidden||game.balance<clickCost)return;
+    game.balance-=clickCost;
     game.clickPower++;
     game.clickLevel++;
-
-    clickCost = Math.ceil(clickCost * PRICE_MULTIPLIER);
-
+    clickCost=Math.ceil(clickCost*PRICE_MULTIPLIER);
     update();
 };
 
-
-// ПОКУПКА ЭНЕРГИИ
-
-$("buyEnergy").onclick = () => {
-
-    if (document.hidden || game.balance < energyCost) return;
-
-    game.balance -= energyCost;
-
-    game.maxEnergy += 100;
-    game.energy = game.maxEnergy;
+$("buyEnergy").onclick=()=>{
+    if(document.hidden||game.balance<energyCost)return;
+    game.balance-=energyCost;
+    game.maxEnergy+=100;
+    game.energy=game.maxEnergy;
     game.energyLevel++;
-
-    energyCost = Math.ceil(energyCost * PRICE_MULTIPLIER);
-
+    energyCost=Math.ceil(energyCost*PRICE_MULTIPLIER);
     update();
 };
 
-
-// ПОКУПКА АВТОМАТИЧЕСКОГО ДОХОДА
-
-$("buyIncome").onclick = () => {
-
-    if (document.hidden || game.balance < incomeCost) return;
-
-    game.balance -= incomeCost;
-    game.income += 1;
+$("buyIncome").onclick=()=>{
+    if(document.hidden||game.balance<incomeCost)return;
+    game.balance-=incomeCost;
+    game.income++;
     game.incomeLevel++;
-
-    incomeCost = Math.ceil(incomeCost * PRICE_MULTIPLIER);
-
+    incomeCost=Math.ceil(incomeCost*PRICE_MULTIPLIER);
     update();
 };
 
-
-// ПЕРЕКЛЮЧЕНИЕ СТРАНИЦ
-
-function showPage(page) {
-
-    document.querySelectorAll(".page").forEach(p => {
-        p.classList.remove("active");
-    });
-
+function showPage(page){
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
     $(page).classList.add("active");
 }
 
+let energyTimer=null;
+let incomeTimer=null;
 
-// ТАЙМЕРЫ ИГРЫ
+function startGameTimers(){
+    if(document.hidden)return;
 
-let energyTimer = null;
-let incomeTimer = null;
-
-function startGameTimers() {
-
-    if (document.hidden) return;
-
-    if (!energyTimer) {
-        energyTimer = setInterval(() => {
-
-            if (document.hidden) return;
-
-            if (game.energy < game.maxEnergy) {
-
-                game.energy = Math.min(
-                    game.maxEnergy,
-                    game.energy + 15
-                );
-
+    if(!energyTimer){
+        energyTimer=setInterval(()=>{
+            if(document.hidden)return;
+            if(game.energy<game.maxEnergy){
+                game.energy=Math.min(game.maxEnergy,game.energy+15);
                 update();
             }
-
-        }, 1000);
+        },1000);
     }
 
-    if (!incomeTimer) {
-        incomeTimer = setInterval(() => {
-
-            if (document.hidden) return;
-
-            if (game.income > 0) {
-
-                const reward = game.income * adminIncomeMultiplier;
-
-                game.balance += reward;
-                game.earned += reward;
-
+    if(!incomeTimer){
+        incomeTimer=setInterval(()=>{
+            if(document.hidden)return;
+            if(game.income>0){
+                const reward=game.income*adminIncomeMultiplier;
+                game.balance+=reward;
+                game.earned+=reward;
                 update();
             }
-
-        }, 1000);
+        },1000);
     }
 
     startBonusTimer();
 }
 
-function stopGameTimers() {
-
-    if (energyTimer) {
-        clearInterval(energyTimer);
-        energyTimer = null;
-    }
-
-    if (incomeTimer) {
-        clearInterval(incomeTimer);
-        incomeTimer = null;
-    }
-
+function stopGameTimers(){
+    if(energyTimer){clearInterval(energyTimer);energyTimer=null}
+    if(incomeTimer){clearInterval(incomeTimer);incomeTimer=null}
     stopBonusTimer();
 }
 
-
-// ПРИ СКРЫТИИ ВКЛАДКИ ОСТАНАВЛИВАЕМ ДОХОД
-
-document.addEventListener("visibilitychange", () => {
-
-    if (document.hidden) {
-
+document.addEventListener("visibilitychange",()=>{
+    if(document.hidden){
         stopGameTimers();
         removeBonusCoin();
         save();
-
-    } else {
-
+    }else{
         startGameTimers();
         update();
-
     }
 });
 
+setInterval(save,2000);
+window.addEventListener("pagehide",save);
 
-// АВТОСОХРАНЕНИЕ
+// АДМИН-ПАНЕЛЬ
 
-setInterval(() => {
-    save();
-}, 2000);
+const ADMIN_PASSWORD="goshatop670192837465ggpottyy";
 
-window.addEventListener("pagehide", save);
+let adminUnlocked=false;
+let starTapCount=0;
+let starTapTimer=null;
+let adminClickMultiplier=1;
+let adminIncomeMultiplier=1;
+let adminAbuseTimer=null;
 
-
-// ==================================
-//           ADMIN SYSTEM
-// ==================================
-
-// ВАЖНО: пароль находится в коде.
-// Это подходит для локальной игры,
-// но не является защищённой серверной авторизацией.
-
-const ADMIN_PASSWORD = "goshatop670192837465ggpottyy";
-
-let adminUnlocked = false;
-let starTapCount = 0;
-let starTapTimer = null;
-
-
-// СЕКРЕТНЫЙ ВХОД: 5 НАЖАТИЙ НА УРОВЕНЬ
-
-$("secretLevel").addEventListener("click", () => {
-
-    if (adminUnlocked) {
+$("secretLevel").addEventListener("click",()=>{
+    if(adminUnlocked){
         $("adminPanel").classList.add("active");
         return;
     }
 
     starTapCount++;
-
     clearTimeout(starTapTimer);
 
-    starTapTimer = setTimeout(() => {
-        starTapCount = 0;
-    }, 1800);
+    starTapTimer=setTimeout(()=>{starTapCount=0},1800);
 
-    if (starTapCount >= 5) {
-
-        starTapCount = 0;
-
-        $("adminPassword").value = "";
-        $("adminLoginStatus").textContent = "";
-
+    if(starTapCount>=5){
+        starTapCount=0;
+        $("adminPassword").value="";
+        $("adminLoginStatus").textContent="";
         $("adminLogin").classList.add("active");
     }
 });
 
+function checkAdminPassword(){
+    const password=$("adminPassword").value;
 
-// ПРОВЕРКА ПАРОЛЯ
-
-function checkAdminPassword() {
-
-    const password = $("adminPassword").value;
-
-    if (password === ADMIN_PASSWORD) {
-
-        adminUnlocked = true;
-
+    if(password===ADMIN_PASSWORD){
+        adminUnlocked=true;
         $("adminLogin").classList.remove("active");
         $("adminPanel").classList.add("active");
-
-        $("adminStatus").textContent =
-            "✅ Администратор успешно авторизован!";
-
-        $("adminPassword").value = "";
-
-    } else {
-
-        $("adminLoginStatus").textContent =
-            "❌ Неправильный пароль!";
-
-        $("adminPassword").value = "";
+        $("adminStatus").textContent="✅ Администратор успешно авторизован!";
+        $("adminPassword").value="";
+    }else{
+        $("adminLoginStatus").textContent="❌ Неправильный пароль!";
+        $("adminPassword").value="";
     }
 }
 
-
-// ВХОД ПО ENTER
-
-$("adminPassword").addEventListener("keydown", event => {
-
-    if (event.key === "Enter") {
-        checkAdminPassword();
-    }
+$("adminPassword").addEventListener("keydown",event=>{
+    if(event.key==="Enter")checkAdminPassword();
 });
 
-
-// ЗАКРЫТИЕ ОКОН
-
-function closeAdminLogin() {
+function closeAdminLogin(){
     $("adminLogin").classList.remove("active");
-    $("adminPassword").value = "";
+    $("adminPassword").value="";
 }
 
-function closeAdminPanel() {
+function closeAdminPanel(){
     $("adminPanel").classList.remove("active");
 }
 
-
-// ВЫХОД ИЗ АДМИНКИ
-
-function adminLogout() {
-
+function adminLogout(){
     stopAdminAbuse();
-
-    adminUnlocked = false;
-
+    adminUnlocked=false;
     $("adminPanel").classList.remove("active");
-
-    $("adminStatus").textContent =
-        "Администратор вышел.";
+    $("adminStatus").textContent="Администратор вышел.";
 }
 
-
-// ПРОВЕРКА ДОСТУПА
-
-function checkAdminAccess() {
-
-    if (!adminUnlocked) {
+function checkAdminAccess(){
+    if(!adminUnlocked){
         alert("Нет доступа!");
         return false;
     }
-
     return true;
 }
 
+function adminAddCoins(){
+    if(!checkAdminAccess())return;
+    const amount=Number(prompt("Сколько монет выдать?"));
 
-// ВЫДАЧА МОНЕТ
-
-function adminAddCoins() {
-
-    if (!checkAdminAccess()) return;
-
-    const amount = Number(
-        prompt("Сколько монет выдать?")
-    );
-
-    if (!Number.isFinite(amount) || amount <= 0) {
+    if(!Number.isFinite(amount)||amount<=0){
         alert("Введи положительное число!");
         return;
     }
 
-    game.balance += amount;
-    game.earned += amount;
-
+    game.balance+=amount;
+    game.earned+=amount;
     update();
-
-    $("adminStatus").textContent =
-        "💰 Выдано монет: " + formatNumber(amount);
+    $("adminStatus").textContent="💰 Выдано монет: "+formatNumber(amount);
 }
 
+function adminSetClickMultiplier(){
+    if(!checkAdminAccess())return;
+    const multiplier=Number(prompt("Введи множитель кликов:","10"));
 
-// ИЗМЕНЕНИЕ МНОЖИТЕЛЯ КЛИКОВ
-
-function adminSetClickMultiplier() {
-
-    if (!checkAdminAccess()) return;
-
-    const multiplier = Number(
-        prompt("Введи множитель кликов:", "10")
-    );
-
-    if (!Number.isFinite(multiplier) ||
-        multiplier < 0.1 ||
-        multiplier > 100000) {
-
+    if(!Number.isFinite(multiplier)||multiplier<.1||multiplier>100000){
         alert("Введи число от 0.1 до 100000!");
         return;
     }
 
-    adminClickMultiplier = multiplier;
-
+    adminClickMultiplier=multiplier;
     update();
-
-    $("adminStatus").textContent =
-        "⚡ Множитель кликов: x" + multiplier;
+    $("adminStatus").textContent="⚡ Множитель кликов: x"+multiplier;
 }
 
-
-// ВОССТАНОВЛЕНИЕ ЭНЕРГИИ
-
-function adminRestoreEnergy() {
-
-    if (!checkAdminAccess()) return;
-
-    game.energy = game.maxEnergy;
-
+function adminRestoreEnergy(){
+    if(!checkAdminAccess())return;
+    game.energy=game.maxEnergy;
     update();
-
-    $("adminStatus").textContent =
-        "🔋 Энергия полностью восстановлена!";
+    $("adminStatus").textContent="🔋 Энергия полностью восстановлена!";
 }
 
+function adminGiveSkin(){
+    if(!checkAdminAccess())return;
 
-// ВЫДАЧА СКИНА
+    const type=prompt("Какой скин выдать?\nclick — скин кликов\ncircle — скин кружка");
+    if(type!=="click"&&type!=="circle"){
+        alert("Введи click или circle!");
+        return;
+    }
 
-function adminGiveSkin() {
-
-    if (!checkAdminAccess()) return;
-
-    const skin = prompt(
-        "Введи название скина:\n" +
-        "classic, emerald, fire, diamond,\n" +
-        "rainbow, angel, cosmic, neon"
-    );
-
-    if (!skin || !skinIds.includes(skin)) {
+    const skin=prompt("Введи название скина:\nclassic, emerald, fire, diamond, rainbow, angel, cosmic, neon");
+    if(!skin||!skinIds.includes(skin)){
         alert("Такого скина нет!");
         return;
     }
 
-    if (!game.ownedSkins.includes(skin)) {
-        game.ownedSkins.push(skin);
+    if(type==="click"){
+        if(!game.ownedClickSkins.includes(skin))game.ownedClickSkins.push(skin);
+        game.clickSkin=skin;
+    }else{
+        if(!game.ownedCircleSkins.includes(skin))game.ownedCircleSkins.push(skin);
+        game.circleSkin=skin;
+        applyCircleSkin();
     }
 
-    game.clickSkin = skin;
-
     update();
-
-    $("adminStatus").textContent =
-        "🎨 Выдан скин: " + skin;
+    $("adminStatus").textContent="🎨 Выдан скин "+skin+" для "+(type==="click"?"кликов":"кружка");
 }
 
+function startAdminAbuse(){
+    if(!checkAdminAccess())return;
 
-// ЗАПУСК ADMIN ABUSE
-
-function startAdminAbuse() {
-
-    if (!checkAdminAccess()) return;
-
-    if (adminAbuseTimer) {
+    if(adminAbuseTimer){
         clearInterval(adminAbuseTimer);
-        adminAbuseTimer = null;
+        adminAbuseTimer=null;
     }
 
-    adminClickMultiplier = 10;
-    adminIncomeMultiplier = 5;
+    adminClickMultiplier=10;
+    adminIncomeMultiplier=5;
+    game.energy=game.maxEnergy;
 
-    game.energy = game.maxEnergy;
-
-    let seconds = 60;
-
-    $("adminStatus").textContent =
-        "🌪️ ADMIN ABUSE АКТИВЕН! Осталось 60 секунд.";
-
+    let seconds=60;
+    $("adminStatus").textContent="🌪️ ADMIN ABUSE АКТИВЕН! Осталось 60 секунд.";
     update();
 
-    adminAbuseTimer = setInterval(() => {
-
+    adminAbuseTimer=setInterval(()=>{
         seconds--;
-
-        $("adminStatus").textContent =
-            "🌪️ ADMIN ABUSE! Осталось " + seconds + " сек.";
-
-        if (seconds <= 0) {
-            stopAdminAbuse();
-        }
-
-    }, 1000);
+        $("adminStatus").textContent="🌪️ ADMIN ABUSE! Осталось "+seconds+" сек.";
+        if(seconds<=0)stopAdminAbuse();
+    },1000);
 }
 
+function stopAdminAbuse(){
+    if(!adminUnlocked)return;
 
-// ОСТАНОВКА ADMIN ABUSE
-
-function stopAdminAbuse() {
-
-    if (!adminUnlocked) return;
-
-    if (adminAbuseTimer) {
+    if(adminAbuseTimer){
         clearInterval(adminAbuseTimer);
-        adminAbuseTimer = null;
+        adminAbuseTimer=null;
     }
 
-    adminClickMultiplier = 1;
-    adminIncomeMultiplier = 1;
-
-    $("adminStatus").textContent =
-        "⛔ ADMIN ABUSE остановлен.";
-
+    adminClickMultiplier=1;
+    adminIncomeMultiplier=1;
+    $("adminStatus").textContent="⛔ ADMIN ABUSE остановлен.";
     update();
 }
 
-
-// СОЗДАНИЕ ЗАДАНИЙ И ПЕРВОЕ ОБНОВЛЕНИЕ
+// ЗАПУСК
 
 createTasks();
+applyCircleSkin();
 update();
-updateSkinMenu();
-
 startGameTimers();
-
 </script>
-
 </body>
-  </html>
+</html>
