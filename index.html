@@ -2,6 +2,604 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clicker</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:linear-gradient(160deg,#11152c,#242c55);
+ color:white;font-family:Arial,sans-serif;text-align:center;
+ min-height:100vh;padding:15px;
+}
+.container{max-width:520px;margin:auto}
+h1{font-size:32px;margin:15px}
+.card{
+ background:#ffffff13;border:1px solid #ffffff22;
+ border-radius:18px;padding:16px;margin:12px 0;
+}
+.balance{font-size:35px;font-weight:bold;color:#ffe36e}
+.small{color:#b9c4e8;font-size:13px}
+button,input{
+ border:0;border-radius:12px;padding:12px;
+ font-size:15px;margin:5px;
+}
+button{background:#657cff;color:white;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.4}
+input{width:85%;max-width:300px;background:#fff;color:#111}
+#clicker{
+ width:210px;height:210px;border-radius:50%;
+ border:8px solid #ffffff66;background:linear-gradient(140deg,#ffd85e,#ff9d35);
+ color:#542b00;font-size:30px;font-weight:bold;
+ box-shadow:0 0 35px #ffcf5a66;
+ margin:20px auto;display:flex;align-items:center;justify-content:center;
+ user-select:none;touch-action:manipulation;
+}
+#clicker:active{transform:scale(.94)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid button{width:100%;margin:0}
+.hidden{display:none!important}
+.skin{background:#ffffff12;border-radius:12px;padding:10px;margin:7px}
+.skin button{width:90%}
+.event{color:#ffe36e;font-weight:bold}
+.row{display:flex;justify-content:space-between;gap:8px;padding:8px;border-bottom:1px solid #ffffff22}
+.row span:last-child{font-weight:bold}
+.gold{color:#ffdc59}
+#announcement{color:#ffe36e;font-weight:bold}
+#adminPanel{border:2px solid #ff5252}
+footer{font-size:12px;color:#aab2d0;margin:25px}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>🖱️ CLICKER</h1>
+
+<div class="card">
+ <div class="small">ТВОЙ БАЛАНС</div>
+ <div class="balance" id="balance">0</div>
+ <div class="small">Уровень: <span id="level">1</span></div>
+ <div class="small">Энергия: <span id="energy">1000</span>/<span id="maxEnergy">1000</span></div>
+ <div class="small">Доход в секунду: <span id="income">0</span></div>
+</div>
+
+<div id="announcement"></div>
+<div id="eventStatus" class="event"></div>
+
+<button id="clicker">CLICK!</button>
+<div class="small">За клик: <span id="clickReward">1</span> монет</div>
+
+<div class="card">
+ <h3>⚡ Улучшения</h3>
+ <div class="grid">
+  <button onclick="buyUpgrade('click')">
+   Сила клика<br>Цена: <span id="clickPrice">100</span>
+  </button>
+  <button onclick="buyUpgrade('energy')">
+   Максимум энергии<br>Цена: <span id="energyPrice">100</span>
+  </button>
+  <button onclick="buyUpgrade('income')">
+   Пассивный доход<br>Цена: <span id="incomePrice">500</span>
+  </button>
+  <button onclick="buyUpgrade('restore')">
+   Восстановить энергию<br>Цена: 50
+  </button>
+ </div>
+</div>
+
+<div class="card">
+ <h3>🎨 Скины</h3>
+ <div id="skins"></div>
+</div>
+
+<div class="card">
+ <h3>🎁 Ежедневный подарок</h3>
+ <p>День серии: <b id="giftDay">1</b>/7</p>
+ <p id="giftDescription"></p>
+ <button id="giftButton" onclick="claimGift()">Забрать подарок</button>
+</div>
+
+<div class="card">
+ <h3>🏆 Глобальный лидерборд</h3>
+ <div class="small">Топ-100 игроков по балансу</div>
+ <div id="myRank">Загрузка твоего места...</div>
+ <div id="leaderboard">Загрузка рейтинга...</div>
+</div>
+
+<div class="card">
+ <h3>👤 Твой профиль</h3>
+ <input id="nickname" maxlength="18" placeholder="Твой никнейм">
+ <br>
+ <button onclick="saveNickname()">Сохранить ник</button>
+ <p class="small" id="playerId"></p>
+</div>
+
+<div class="card">
+ <h3>🌍 Глобальные события</h3>
+ <div id="eventList">Загрузка событий...</div>
+</div>
+
+<div class="card">
+ <h3>👑 Администратор</h3>
+ <button onclick="showAdminLogin()">Войти в Admin Abuse</button>
+ <div id="adminLogin" class="hidden">
+  <input id="adminEmail" type="email" placeholder="Email администратора">
+  <input id="adminPassword" type="password" placeholder="Пароль">
+  <br>
+  <button onclick="adminLogin()">Войти</button>
+ </div>
+ <div id="adminPanel" class="hidden card">
+  <h3>☢️ ADMIN ABUSE</h3>
+  <select id="eventSelect">
+   <option value="golden">⚡ Golden Hour</option>
+   <option value="super">🚀 Super Click</option>
+   <option value="gift">🎁 Gift Rain</option>
+   <option value="income">🔥 Crazy Income</option>
+   <option value="rainbow">🌈 Rainbow Event</option>
+   <option value="mega">☢️ MEGA ADMIN ABUSE</option>
+  </select>
+  <br>
+  <input id="eventDuration" type="number" value="5" min="1" max="120" placeholder="Длительность в минутах">
+  <br>
+  <button onclick="startGlobalEvent()">Запустить событие</button>
+  <button onclick="stopGlobalEvent()">Остановить событие</button>
+  <hr>
+  <h4>💰 Выдать монеты</h4>
+  <input id="giveAmount" type="number" placeholder="Количество монет">
+  <br>
+  <input id="giveUid" placeholder="UID игрока (пусто = всем)">
+  <br>
+  <button onclick="giveCoins()">Выдать монеты</button>
+  <hr>
+  <h4>📢 Объявление</h4>
+  <input id="announcementText" placeholder="Текст объявления">
+  <br>
+  <button onclick="sendAnnouncement()">Отправить всем</button>
+  <br>
+  <button onclick="adminLogout()">Выйти из админки</button>
+ </div>
+</div>
+
+<footer>Clicker • Firebase Global Game</footer>
+</div>
+
+<script>
+// FIREBASE
+const firebaseConfig = {
+ apiKey: "AIzaSyCgZkG60vQkGTm9_tC2DNeVUYuVbz5ZMUY",
+ authDomain: "clicker-91693.firebaseapp.com",
+ databaseURL: "https://clicker-91693-default-rtdb.europe-west1.firebasedatabase.app",
+ projectId: "clicker-91693",
+ storageBucket: "clicker-91693.firebasestorage.app",
+ messagingSenderId: "981787618868",
+ appId: "1:981787618868:web:4e5b00e7bc820f4e3a2461",
+ measurementId: "G-YGS2VVRMNY"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.database();
+
+const ADMIN_UID="FzYDg0McacZwXOPSptOwUxnGlXm2";
+
+let uid=null;
+let isAdmin=false;
+let playerRef=null;
+let eventData=null;
+let player={
+ balance:0,energy:1000,maxEnergy:1000,
+ clickPower:1,clickLevel:1,energyLevel:1,
+ incomeLevel:0,income:0,clicks:0,earned:0,
+ nickname:"Игрок",giftDay:0,lastGift:0,
+ ownedSkins:["classic"],clickSkin:"classic"
+};
+
+const skins=[
+ {id:"classic",name:"Классический",price:0,mult:1,color:"#ffbd45"},
+ {id:"emerald",name:"Изумруд",price:10000000,mult:1.5,color:"#20c878"},
+ {id:"fire",name:"Огонь",price:20000000,mult:2,color:"#ff542f"},
+ {id:"rainbow",name:"Радуга",price:25000000,mult:3,color:"rainbow"},
+ {id:"diamond",name:"Алмаз",price:30000000,mult:2.5,color:"#49dfff"},
+ {id:"angel",name:"Ангел",price:35000000,mult:3.5,color:"#ffffff"},
+ {id:"cosmic",name:"Космос",price:45000000,mult:4,color:"#9b68ff"},
+ {id:"neon",name:"Неон",price:55000000,mult:4.5,color:"#ff44dc"}
+];
+
+const gifts=[
+ {text:"1 000 монет",coins:1000},
+ {text:"2 500 монет",coins:2500},
+ {text:"+500 энергии",energy:500},
+ {text:"5 000 монет",coins:5000},
+ {text:"Случайно: 5 000–10 000 монет",random:true},
+ {text:"15 000 монет",coins:15000},
+ {text:"30 000 монет + особый эффект",coins:30000}
+];
+
+const fmt=n=>Math.floor(Number(n)||0).toLocaleString("ru-RU");
+
+function save(){
+ if(!playerRef)return;
+ playerRef.update({
+  balance:player.balance,
+  energy:player.energy,
+  maxEnergy:player.maxEnergy,
+  clickPower:player.clickPower,
+  clickLevel:player.clickLevel,
+  energyLevel:player.energyLevel,
+  incomeLevel:player.incomeLevel,
+  income:player.income,
+  clicks:player.clicks,
+  earned:player.earned,
+  nickname:player.nickname,
+  giftDay:player.giftDay,
+  lastGift:player.lastGift,
+  ownedSkins:player.ownedSkins,
+  clickSkin:player.clickSkin
+ }).catch(console.error);
+ render();
+}
+
+function render(){
+ document.getElementById("balance").textContent=fmt(player.balance);
+ document.getElementById("energy").textContent=fmt(player.energy);
+ document.getElementById("maxEnergy").textContent=fmt(player.maxEnergy);
+ document.getElementById("level").textContent=player.clickLevel;
+ document.getElementById("income").textContent=fmt(player.income);
+ document.getElementById("clickReward").textContent=fmt(getReward());
+ document.getElementById("clickPrice").textContent=fmt(100*player.clickLevel);
+ document.getElementById("energyPrice").textContent=fmt(100*player.energyLevel);
+ document.getElementById("incomePrice").textContent=fmt(500*(player.incomeLevel+1));
+ document.getElementById("giftDay").textContent=player.giftDay+1;
+ document.getElementById("giftDescription").textContent=gifts[player.giftDay]?.text||gifts[0].text;
+ document.getElementById("nickname").value=player.nickname;
+ document.getElementById("playerId").textContent="UID: "+(uid||"");
+ renderSkins();
+}
+
+function getReward(){
+ let mult=1;
+ if(player.clickSkin){
+  const skin=skins.find(s=>s.id===player.clickSkin);
+  if(skin)mult*=skin.mult;
+ }
+ if(eventData && eventData.endAt>Date.now()){
+  if(eventData.type==="golden")mult*=2;
+  if(eventData.type==="super")mult*=3;
+  if(eventData.type==="mega")mult*=10;
+ }
+ return Math.floor(player.clickPower*mult);
+}
+
+document.getElementById("clicker").addEventListener("click",()=>{
+ if(!uid)return;
+ if(player.energy<=0)return;
+ let reward=getReward();
+ if(eventData && eventData.type==="rainbow" && eventData.endAt>Date.now()){
+  const r=Math.random()*100;
+  reward+=r<60?100000:r<85?500000:r<97?1000000:2000000;
+ }
+ player.balance+=reward;
+ player.earned+=reward;
+ player.clicks++;
+ player.energy--;
+ save();
+});
+
+function buyUpgrade(type){
+ if(type==="click"){
+  let price=100*player.clickLevel;
+  if(player.balance<price)return alert("Недостаточно монет!");
+  player.balance-=price;
+  player.clickLevel++;
+  player.clickPower++;
+ }
+ if(type==="energy"){
+  let price=100*player.energyLevel;
+  if(player.balance<price)return alert("Недостаточно монет!");
+  player.balance-=price;
+  player.energyLevel++;
+  player.maxEnergy+=250;
+  player.energy=player.maxEnergy;
+ }
+ if(type==="income"){
+  let price=500*(player.incomeLevel+1);
+  if(player.balance<price)return alert("Недостаточно монет!");
+  player.balance-=price;
+  player.incomeLevel++;
+  player.income+=5;
+ }
+ if(type==="restore"){
+  if(player.balance<50)return alert("Недостаточно монет!");
+  player.balance-=50;
+  player.energy=player.maxEnergy;
+ }
+ save();
+}
+
+function renderSkins(){
+ const box=document.getElementById("skins");
+ box.innerHTML="";
+ skins.forEach(s=>{
+  const owned=player.ownedSkins.includes(s.id);
+  const equipped=player.clickSkin===s.id;
+  const div=document.createElement("div");
+  div.className="skin";
+  div.innerHTML=`
+   <b>${s.name}</b><br>
+   <span class="small">Множитель x${s.mult} • ${owned?"Куплен":fmt(s.price)+" монет"}</span><br>
+   <button>${equipped?"Выбран":owned?"Выбрать":"Купить"}</button>`;
+  div.querySelector("button").onclick=()=>{
+   if(owned){
+    player.clickSkin=s.id;
+   }else{
+    if(player.balance<s.price)return alert("Недостаточно монет!");
+    player.balance-=s.price;
+    player.ownedSkins.push(s.id);
+    player.clickSkin=s.id;
+   }
+   save();
+  };
+  box.appendChild(div);
+ });
+}
+
+function saveNickname(){
+ const n=document.getElementById("nickname").value.trim().slice(0,18);
+ if(!n)return alert("Введи никнейм");
+ player.nickname=n;
+ save();
+}
+
+function claimGift(){
+ const now=Date.now();
+ if(player.lastGift && now-player.lastGift<86400000){
+  return alert("Следующий подарок будет доступен через 24 часа после прошлого.");
+ }
+ player.giftDay=(player.giftDay+1)%7;
+ const gift=gifts[player.giftDay===0?6:player.giftDay-1];
+ // Для первого получения используем день 1.
+ const day=player.giftDay===0?7:player.giftDay;
+ if(gift.coins)player.balance+=gift.coins;
+ if(gift.energy)player.energy=Math.min(player.maxEnergy,player.energy+gift.energy);
+ if(gift.random)player.balance+=5000+Math.floor(Math.random()*5001);
+ if(day===7)document.body.style.background="linear-gradient(160deg,#41205b,#1a3d60)";
+ player.lastGift=now;
+ save();
+ alert("Подарок получен!");
+}
+
+// Пассивный доход и энергия
+setInterval(()=>{
+ if(!uid)return;
+ if(player.income>0){
+  let mult=1;
+  if(eventData && eventData.endAt>Date.now()){
+   if(eventData.type==="income")mult=2;
+   if(eventData.type==="mega")mult=5;
+  }
+  player.balance+=player.income*mult;
+  player.earned+=player.income*mult;
+ }
+ player.energy=Math.min(player.maxEnergy,player.energy+1);
+ save();
+},1000);
+
+// Firebase авторизация
+auth.onAuthStateChanged(async user=>{
+ if(!user){
+  try{await auth.signInAnonymously();}catch(e){console.error(e);}
+  return;
+ }
+ uid=user.uid;
+ isAdmin=uid===ADMIN_UID;
+ playerRef=db.ref("players/"+uid);
+
+ playerRef.once("value").then(s=>{
+  const data=s.val();
+  if(data)player={...player,...data};
+  render();
+  save();
+ });
+
+ listenLeaderboard();
+ listenEvents();
+ listenAnnouncement();
+});
+
+// ЛИДЕРБОРД
+function listenLeaderboard(){
+ db.ref("players").orderByChild("balance").limitToLast(100)
+ .on("value",snap=>{
+  let list=[];
+  snap.forEach(child=>{
+   list.push({uid:child.key,...child.val()});
+  });
+  list.reverse();
+  const box=document.getElementById("leaderboard");
+  box.innerHTML="";
+  let myPosition=-1;
+  list.forEach((p,i)=>{
+   if(p.uid===uid)myPosition=i+1;
+   const row=document.createElement("div");
+   row.className="row";
+   const name=document.createElement("span");
+   name.textContent=(i+1)+". "+(p.nickname||"Игрок")+(p.uid===ADMIN_UID?" 👑":"");
+   const amount=document.createElement("span");
+   amount.textContent=fmt(p.balance||0);
+   row.append(name,amount);
+   box.appendChild(row);
+  });
+  document.getElementById("myRank").textContent=
+   myPosition>0?"Твоё место: #"+myPosition:"Ты пока не в топ-100";
+ });
+}
+
+// ГЛОБАЛЬНЫЕ СОБЫТИЯ
+function listenEvents(){
+ db.ref("adminAbuse/current").on("value",snap=>{
+  eventData=snap.val();
+  updateEventUI();
+ });
+}
+
+function updateEventUI(){
+ const box=document.getElementById("eventStatus");
+ const list=document.getElementById("eventList");
+ if(!eventData || !eventData.endAt || eventData.endAt<Date.now()){
+  box.textContent="Сейчас глобальных событий нет";
+  list.textContent="Ожидай следующего события!";
+  return;
+ }
+ const names={
+  golden:"⚡ GOLDEN HOUR",
+  super:"🚀 SUPER CLICK",
+  gift:"🎁 GIFT RAIN",
+  income:"🔥 CRAZY INCOME",
+  rainbow:"🌈 RAINBOW EVENT",
+  mega:"☢️ MEGA ADMIN ABUSE"
+ };
+ const remaining=Math.max(0,Math.ceil((eventData.endAt-Date.now())/1000));
+ box.textContent=names[eventData.type]+" • "+remaining+" сек.";
+ list.textContent=names[eventData.type]+" активно!";
+}
+
+setInterval(updateEventUI,1000);
+
+function listenAnnouncement(){
+ db.ref("adminAbuse/announcement").on("value",snap=>{
+  const a=snap.val();
+  document.getElementById("announcement").textContent=a?.text||"";
+ });
+}
+
+// АДМИН
+function showAdminLogin(){
+ document.getElementById("adminLogin").classList.toggle("hidden");
+}
+
+async function adminLogin(){
+ const email=document.getElementById("adminEmail").value;
+ const password=document.getElementById("adminPassword").value;
+ try{
+  const result=await auth.signInWithEmailAndPassword(email,password);
+  if(result.user.uid!==ADMIN_UID){
+   await auth.signOut();
+   alert("У этого аккаунта нет прав администратора.");
+   return;
+  }
+  isAdmin=true;
+  document.getElementById("adminPanel").classList.remove("hidden");
+  document.getElementById("adminLogin").classList.add("hidden");
+  alert("Добро пожаловать, администратор!");
+ }catch(e){
+  alert("Ошибка входа: "+e.message);
+ }
+}
+
+function requireAdmin(){
+ if(!isAdmin || auth.currentUser?.uid!==ADMIN_UID){
+  alert("Нет доступа!");
+  return false;
+ }
+ return true;
+}
+
+async function startGlobalEvent(){
+ if(!requireAdmin())return;
+ const type=document.getElementById("eventSelect").value;
+ const minutes=Math.max(1,Math.min(120,Number(document.getElementById("eventDuration").value)||5));
+ const data={
+  type,
+  startAt:Date.now(),
+  endAt:Date.now()+minutes*60000,
+  startedBy:ADMIN_UID
+ };
+ try{
+  await db.ref("adminAbuse/current").set(data);
+  await db.ref("adminAbuse/history").push({
+   type,startAt:data.startAt,endAt:data.endAt
+  });
+  if(type==="gift")await grantGiftRain();
+  alert("Глобальное событие запущено!");
+ }catch(e){alert("Ошибка: "+e.message);}
+}
+
+async function stopGlobalEvent(){
+ if(!requireAdmin())return;
+ try{
+  await db.ref("adminAbuse/current").remove();
+ }catch(e){alert(e.message);}
+}
+
+async function grantGiftRain(){
+ // Клиентская выдача не является защищённой серверной транзакцией.
+ // Для настоящей защиты от повторных начислений нужна Cloud Function.
+ const snap=await db.ref("players").once("value");
+ const updates={};
+ snap.forEach(child=>{
+  const p=child.val()||{};
+  const uid2=child.key;
+  const marker="giftRain_"+eventData.startAt;
+  if(!p[marker]){
+   updates[uid2+"/balance"]=(Number(p.balance)||0)+500000;
+   updates[uid2+"/"+marker]=true;
+  }
+ });
+ await db.ref("players").update(updates);
+}
+
+async function giveCoins(){
+ if(!requireAdmin())return;
+ const amount=Math.floor(Number(document.getElementById("giveAmount").value));
+ const target=document.getElementById("giveUid").value.trim();
+ if(!Number.isFinite(amount)||amount<=0)return alert("Укажи положительное количество монет.");
+ try{
+  if(target){
+   const ref=db.ref("players/"+target);
+   const snap=await ref.child("balance").once("value");
+   await ref.child("balance").set((Number(snap.val())||0)+amount);
+  }else{
+   const snap=await db.ref("players").once("value");
+   const updates={};
+   snap.forEach(child=>{
+    updates[child.key+"/balance"]=(Number(child.child("balance").val())||0)+amount;
+   });
+   await db.ref("players").update(updates);
+  }
+  alert("Монеты выданы!");
+ }catch(e){alert("Ошибка: "+e.message);}
+}
+
+async function sendAnnouncement(){
+ if(!requireAdmin())return;
+ const text=document.getElementById("announcementText").value.trim();
+ if(!text)return alert("Напиши объявление.");
+ try{
+  await db.ref("adminAbuse/announcement").set({
+   text:text.slice(0,250),
+   time:Date.now()
+  });
+  alert("Объявление отправлено!");
+ }catch(e){alert(e.message);}
+}
+
+async function adminLogout(){
+ if(!requireAdmin())return;
+ isAdmin=false;
+ document.getElementById("adminPanel").classList.add("hidden");
+ await auth.signOut();
+}
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>CLICKER</title>
 
