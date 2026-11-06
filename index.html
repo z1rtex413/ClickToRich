@@ -4,6 +4,772 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>CLICKER</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+body{background:#101225;color:white;font-family:Arial,sans-serif;font-size:16px}
+.app{max-width:430px;min-height:100vh;margin:auto;padding:20px 18px 100px;background:linear-gradient(180deg,#242944,#151728)}
+.header{display:flex;justify-content:space-between;align-items:flex-start}
+.brand{display:flex;flex-direction:column;gap:9px}.logo{font-size:20px;font-weight:bold}
+button{border:0;border-radius:10px;padding:11px 12px;background:#f8d45b;color:#27263b;font-weight:bold;cursor:pointer}
+button:disabled{background:#666b80;color:white}
+.skins-open{width:58px;height:58px;padding:4px;border-radius:13px;background:linear-gradient(145deg,#8b5cff,#5425c9);color:white;border:2px solid #b89aff;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;box-shadow:0 0 12px #742cff88}
+.skins-open span{font-size:24px}.skins-open small{font-size:11px}
+.level{padding:9px 13px;border-radius:20px;background:#343a59;font-size:15px;cursor:pointer}
+.page{display:none}.page.active{display:block}
+.balance-box{text-align:center;margin:30px 0 22px}.balance-title{color:#aeb5d0}.balance{margin-top:8px;color:#ffe16a;font-size:36px;font-weight:bold;white-space:nowrap}
+.hamster-wrap{display:flex;justify-content:center;align-items:center;margin:20px auto 26px}
+.hamster{width:min(78vw,310px);aspect-ratio:1;border-radius:50%;border:6px solid #692bff;background:#00113e;box-shadow:0 0 20px #742cff,0 0 40px #4c20ff99;touch-action:none;cursor:pointer;transition:transform .06s}
+.hamster.pressed{transform:scale(.96)}
+.stats{display:flex;justify-content:space-between;background:#292f4b;padding:15px 8px;border-radius:15px;gap:4px}
+.stat{text-align:center;min-width:0;flex:1}.stat small{display:block;color:#aeb5d0;margin-bottom:7px;font-size:12px}.stat strong{font-size:clamp(13px,3.5vw,17px);overflow-wrap:anywhere}
+.energy-box{margin:20px 0}.energy-info{display:flex;justify-content:space-between;margin-bottom:9px}.energy-bar{height:13px;background:#353b59;border-radius:20px;overflow:hidden}.energy-fill{height:100%;background:linear-gradient(90deg,#ffca55,#ffe78c)}
+.section-title{font-size:23px;margin:25px 0 15px}
+.upgrade{display:flex;align-items:center;justify-content:space-between;background:#292f4b;padding:14px;border-radius:15px;margin-bottom:12px;gap:10px}
+.upgrade small{display:block;color:#aeb5d0;margin-top:5px}.upgrade-icon{font-size:29px}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;display:flex;justify-content:space-around;padding:11px 2px;background:#20243a;z-index:50}
+.nav-item{text-align:center;color:#b3bad2;font-size:10px;cursor:pointer;flex:1}.nav-item span{display:block;font-size:21px;margin-bottom:4px}
+.modal{position:fixed;inset:0;z-index:500;background:#000b;display:none;justify-content:center;align-items:center;padding:15px}.modal.active{display:flex}
+.window{width:100%;max-width:370px;max-height:85vh;overflow-y:auto;background:linear-gradient(180deg,#303858,#191d32);border:2px solid #7852dc;border-radius:20px;padding:18px;box-shadow:0 0 30px #672cff77}
+.window h2{margin-bottom:14px}.window input,.window select{width:100%;padding:12px;border-radius:10px;border:2px solid #7852dc;background:#17152e;color:white;font-size:16px;margin:7px 0}
+.window button{width:100%;margin-top:8px}.close{background:#484d69;color:white}
+.skin-row,.event-banner{background:#292f4b;border-radius:12px;padding:12px;margin:8px 0;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.skin-row button{width:auto;margin:0}.event-banner{display:block;text-align:center;border:1px solid #a66bff;color:#ffe16a}
+.muted{color:#b9bfd5;font-size:12px;margin-top:5px}.status{color:#aaffc9;font-size:13px;margin:9px 0;overflow-wrap:anywhere}
+.task-item{position:relative}.task-item.done:after{content:"";position:absolute;top:7px;right:7px;width:10px;height:10px;border-radius:50%;background:#ff3030}
+.popup{position:fixed;pointer-events:none;color:#ffe16a;font-size:24px;font-weight:bold;animation:rise .55s forwards;z-index:100}
+@keyframes rise{to{opacity:0;transform:translateY(-60px)}}
+.bonus-coin{position:fixed;z-index:200;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;background:linear-gradient(145deg,#ffe98a,#ffae00);border:3px solid #fff0a8;box-shadow:0 0 20px #ffdb45;cursor:pointer}
+.skin-preview{display:inline-flex;width:30px;height:30px;border-radius:8px;align-items:center;justify-content:center;margin-right:7px}
+</style>
+</head>
+<body>
+
+<div class="app">
+<header class="header">
+ <div class="brand">
+  <div class="logo">CLICKER</div>
+  <button class="skins-open" onclick="openSkins()"><span>🎨</span><small>СКИНЫ</small></button>
+ </div>
+ <div class="level" id="secretLevel">⭐ Ур. <span id="level">1</span></div>
+</header>
+
+<div class="event-banner" id="eventBanner" style="display:none"></div>
+
+<section id="home" class="page active">
+ <div class="balance-box">
+  <div class="balance-title">ТВОЙ БАЛАНС</div>
+  <div class="balance">🪙 <span id="balance">0</span></div>
+ </div>
+
+ <div class="upgrade" style="display:block;text-align:center">
+  <strong>🎡 ЕЖЕДНЕВНАЯ РУЛЕТКА</strong>
+  <div class="muted">Один бесплатный спин каждые 24 часа</div>
+  <div id="rouletteResult" style="font-size:18px;margin:10px">Призы: монеты, энергия и особый приз</div>
+  <button id="spinButton" onclick="spinRoulette()">КРУТИТЬ</button>
+ </div>
+
+ <div class="hamster-wrap">
+  <div class="hamster" id="hamster" aria-label="Нажми, чтобы заработать"></div>
+ </div>
+
+ <div class="stats">
+  <div class="stat"><small>За клик</small><strong id="perClick">+1</strong></div>
+  <div class="stat"><small>Доход/сек</small><strong id="income">0</strong></div>
+  <div class="stat"><small>Клики</small><strong id="clicks">0</strong></div>
+ </div>
+
+ <div class="energy-box">
+  <div class="energy-info">
+   <strong>⚡ Энергия</strong>
+   <strong><span id="energy">1000</span>/<span id="maxEnergy">1000</span></strong>
+  </div>
+  <div class="energy-bar"><div class="energy-fill" id="energyFill"></div></div>
+ </div>
+</section>
+
+<section id="shop" class="page">
+ <h2 class="section-title">🚀 Улучшения</h2>
+ <div class="upgrade">
+  <div><div class="upgrade-icon">👆</div><strong>Сильный палец</strong><small>Уровень: <span id="clickLevel">1</span></small></div>
+  <button id="buyClick">🪙 <span id="clickCost">100</span></button>
+ </div>
+ <div class="upgrade">
+  <div><div class="upgrade-icon">⚡</div><strong>Больше энергии</strong><small>Уровень: <span id="energyLevel">1</span></small></div>
+  <button id="buyEnergy">🪙 <span id="energyCost">200</span></button>
+ </div>
+ <div class="upgrade">
+  <div><div class="upgrade-icon">🏭</div><strong>Автоматический доход</strong><small>Уровень: <span id="incomeLevel">0</span></small><small>+1 монета в секунду</small></div>
+  <button id="buyIncome">🪙 <span id="incomeCost">500</span></button>
+ </div>
+</section>
+
+<section id="tasks" class="page">
+ <h2 class="section-title">🎯 Задания</h2>
+ <div id="tasksContainer"></div>
+</section>
+
+<section id="friends" class="page">
+ <h2 class="section-title">👥 Друзья</h2>
+ <div class="upgrade" style="display:block">
+  Приглашай друзей!
+  <div class="muted">Твой игровой UID: <span id="myUid">подключение...</span></div>
+ </div>
+</section>
+
+<section id="leaderboard" class="page">
+ <h2 class="section-title">🏆 Лидерборд</h2>
+ <div class="muted">Топ игроков по балансу</div>
+ <div id="leaderboardList"></div>
+</section>
+</div>
+
+<nav class="nav">
+ <div class="nav-item" onclick="showPage('home')"><span>🏠</span>Главная</div>
+ <div class="nav-item" onclick="showPage('shop')"><span>🚀</span>Улучшения</div>
+ <div class="nav-item" onclick="showPage('tasks')"><span>🎯</span>Задания</div>
+ <div class="nav-item" onclick="showPage('friends')"><span>👥</span>Друзья</div>
+ <div class="nav-item" onclick="showPage('leaderboard')"><span>🏆</span>Топ</div>
+</nav>
+
+<div class="modal" id="skinModal">
+ <div class="window">
+  <h2>🎨 Скины кликов</h2>
+  <div id="skinList"></div>
+  <button class="close" onclick="closeModal('skinModal')">Закрыть</button>
+ </div>
+</div>
+
+<div class="modal" id="adminLogin">
+ <div class="window">
+  <h2>🔐 Вход администратора</h2>
+  <input type="password" id="adminPassword" placeholder="Пароль">
+  <button onclick="checkAdminPassword()">👑 Войти</button>
+  <button class="close" onclick="closeModal('adminLogin')">Отмена</button>
+  <div class="status" id="adminLoginStatus"></div>
+ </div>
+</div>
+
+<div class="modal" id="adminPanel">
+ <div class="window">
+  <h2>👑 ADMIN PANEL</h2>
+  <div class="status" id="adminStatus">Панель администратора</div>
+  <button onclick="adminAddCoins()">💰 Выдать монеты себе</button>
+  <button onclick="adminSetClickMultiplier()">⚡ Множитель клика</button>
+  <button onclick="adminRestoreEnergy()">🔋 Восстановить энергию</button>
+
+  <h3 style="margin-top:16px">🌍 Глобальные события</h3>
+  <select id="eventType">
+   <option value="golden">Golden Hour ×2 (5 минут)</option>
+   <option value="super">Super Click ×3 (3 минуты)</option>
+   <option value="rain">Gift Rain +500 000 всем (один раз)</option>
+   <option value="income">Crazy Income ×2 (10 минут)</option>
+   <option value="rainbow">Rainbow Event (5 минут)</option>
+   <option value="mega">MEGA EVENT (10 минут)</option>
+  </select>
+
+  <button onclick="startGlobalEvent()">▶ Запустить событие</button>
+  <button onclick="stopGlobalEvent()">⛔ Остановить событие</button>
+  <input id="announcementInput" placeholder="Текст объявления">
+  <button onclick="sendAnnouncement()">📢 Опубликовать объявление</button>
+  <button onclick="adminGrantToUid()">🎁 Выдать монеты UID</button>
+  <button class="close" onclick="closeModal('adminPanel')">Закрыть</button>
+  <button class="close" onclick="adminLogout()">Выйти</button>
+ </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+// Firebase: проект CLICKER
+const firebaseConfig={
+ apiKey:"AIzaSyCgZkG60vQkGTm9_tC2DNeVUYuVbz5ZMUY",
+ authDomain:"clicker-91693.firebaseapp.com",
+ databaseURL:"https://clicker-91693-default-rtdb.europe-west1.firebasedatabase.app",
+ projectId:"clicker-91693",
+ storageBucket:"clicker-91693.firebasestorage.app",
+ messagingSenderId:"981787618868",
+ appId:"1:981787618868:web:4e5b00e7bc820f4e3a2461",
+ measurementId:"G-YGS2VVRMNY"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth(), db=firebase.database();
+
+const ADMIN_UID="FzYDg0McacZwXOPSptOwUxnGlXm2";
+const ADMIN_PASSWORD="goshatop67991";
+const KEY="hamsterGame";
+
+const defaults={
+ balance:0,energy:1000,maxEnergy:1000,clickPower:1,
+ clickLevel:1,energyLevel:1,incomeLevel:0,income:0,
+ clicks:0,earned:0,claimed:[],clickSkin:"classic",
+ ownedSkins:["classic"],rouletteAt:0,incomeUnitVersion:2
+};
+
+let game=loadGame(),uid=null,isAdmin=false,adminUnlocked=false;
+let clickMult=1,incomeMult=1,activeEvent=null,eventTimer=null;
+
+let clickCost=Math.ceil(100*1.03**(game.clickLevel-1));
+let energyCost=Math.ceil(200*1.03**(game.energyLevel-1));
+let incomeCost=Math.ceil(500*1.03**game.incomeLevel);
+
+const $=id=>document.getElementById(id);
+
+function loadGame(){
+ try{
+  let s=JSON.parse(localStorage.getItem(KEY));
+  return s?{...defaults,...s}:{...defaults};
+ }catch(e){
+  return {...defaults};
+ }
+}
+
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(game));
+ syncPlayer();
+}
+
+function formatNumber(n){
+ n=Number(n)||0;
+ let a=Math.abs(n);
+ if(a<1000)return n.toLocaleString("ru-RU",{maximumFractionDigits:2});
+ for(const [v,s] of [[1e12,"т"],[1e9,"B"],[1e6,"м"],[1e3,"к"]]){
+  if(a>=v)return (n/v).toLocaleString("ru-RU",{maximumFractionDigits:1})+s;
+ }
+ return String(n);
+}
+
+function getClickReward(){
+ let mult=({
+  classic:1,emerald:1.5,fire:2,diamond:2.5,
+  rainbow:3,angel:3.5,cosmic:4,neon:4.5
+ })[game.clickSkin]||1;
+
+ let ev=activeEvent?.type==="golden"?2:
+        activeEvent?.type==="super"?3:
+        activeEvent?.type==="mega"?5:1;
+
+ return game.clickPower*mult*clickMult*ev;
+}
+
+function update(){
+ $("balance").textContent=Math.floor(game.balance).toLocaleString("ru-RU");
+ $("energy").textContent=formatNumber(Math.floor(game.energy));
+ $("maxEnergy").textContent=formatNumber(game.maxEnergy);
+ $("energyFill").style.width=(game.energy/game.maxEnergy*100)+"%";
+
+ $("perClick").textContent="+"+formatNumber(getClickReward());
+ $("income").textContent=formatNumber(game.income*incomeMult*(activeEvent?.type==="income"?2:activeEvent?.type==="mega"?5:1));
+ $("clicks").textContent=formatNumber(game.clicks);
+
+ $("level").textContent=Math.floor(game.earned/1e7)+1;
+ $("clickLevel").textContent=game.clickLevel;
+ $("energyLevel").textContent=game.energyLevel;
+ $("incomeLevel").textContent=game.incomeLevel;
+
+ $("clickCost").textContent=formatNumber(clickCost);
+ $("energyCost").textContent=formatNumber(energyCost);
+ $("incomeCost").textContent=formatNumber(incomeCost);
+
+ $("buyClick").disabled=game.balance<clickCost;
+ $("buyEnergy").disabled=game.balance<energyCost;
+ $("buyIncome").disabled=game.balance<incomeCost;
+
+ updateTasks();
+ updateRoulette();
+ renderSkins();
+ saveLocal();
+}
+
+function saveLocal(){
+ try{localStorage.setItem(KEY,JSON.stringify(game))}catch(e){}
+}
+
+function syncPlayer(){
+ if(!uid)return;
+ db.ref("players/"+uid).update({
+  name:"Игрок "+uid.slice(0,5),
+  balance:Math.floor(game.balance),
+  earned:Math.floor(game.earned),
+  clicks:game.clicks,
+  level:Math.floor(game.earned/1e7)+1,
+  updatedAt:Date.now(),
+  gameData:game
+ }).catch(e=>console.warn("Firebase sync:",e.message));
+}
+
+function showPage(p){
+ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+ $(p).classList.add("active");
+ if(p==="leaderboard")loadLeaderboard();
+}
+
+function openSkins(){
+ $("skinModal").classList.add("active");
+}
+
+function closeModal(id){
+ $(id).classList.remove("active");
+}
+
+const skins=[
+ ["classic","Обычный",0,1],
+ ["emerald","Изумрудный",1e7,1.5],
+ ["fire","Огненный",2e7,2],
+ ["diamond","Алмазный",3e7,2.5],
+ ["rainbow","Радужный",2.5e7,3],
+ ["angel","Ангельский",3.5e7,3.5],
+ ["cosmic","Космический",4.5e7,4],
+ ["neon","Неоновый",5.5e7,4.5]
+];
+
+function renderSkins(){
+ $("skinList").innerHTML=skins.map(([id,n,p,m])=>
+  `<div class="skin-row">
+   <div><b>${n}</b><div class="muted">${p?formatNumber(p)+" монет":"Бесплатно"} · ×${m}</div></div>
+   <button onclick="selectSkin('${id}')">${game.ownedSkins.includes(id)?(game.clickSkin===id?"Выбрано":"Выбрать"):"Купить"}</button>
+  </div>`
+ ).join("");
+}
+
+function selectSkin(id){
+ let s=skins.find(x=>x[0]===id);
+ if(!s)return;
+ if(!game.ownedSkins.includes(id)){
+  if(game.balance<s[2])return alert("Недостаточно монет");
+  game.balance-=s[2];
+  game.ownedSkins.push(id);
+ }
+ game.clickSkin=id;
+ update();
+}
+
+const tasks=[
+ {id:1,title:"🎮 Начинающий игрок",goal:100,reward:500,type:"clicks"},
+ {id:2,title:"🪙 Первый капитал",goal:1000,reward:1000},
+ {id:3,title:"💰 Опытный игрок",goal:1e4,reward:2000},
+ {id:4,title:"🏆 Богач",goal:1e5,reward:1e4},
+ {id:5,title:"💎 Миллионер",goal:1e6,reward:1e5},
+ {id:6,title:"👑 Магнат",goal:1e7,reward:1e6},
+ {id:7,title:"🌟 Легенда",goal:1e8,reward:1e7},
+ {id:8,title:"🚀 Миллиардер",goal:1e9,reward:1e8},
+ {id:9,title:"🌌 Космический магнат",goal:1e10,reward:1e9},
+ {id:10,title:"👑 Император монет",goal:1e11,reward:1e10},
+ {id:11,title:"🏅 Легенда галактики",goal:1e12,reward:1e11},
+ {id:12,title:"🌠 Повелитель вселенной",goal:1e13,reward:1e12}
+];
+
+function createTasks(){
+ $("tasksContainer").innerHTML=tasks.map(t=>
+  `<div class="upgrade task-item" id="task${t.id}">
+   <div><b>${t.title}</b><small id="prog${t.id}"></small></div>
+   <button id="taskBtn${t.id}" onclick="claimTask(${t.id})">${formatNumber(t.reward)}</button>
+  </div>`
+ ).join("");
+}
+
+function updateTasks(){
+ tasks.forEach(t=>{
+  let v=t.type==="clicks"?game.clicks:game.earned;
+  let done=v>=t.goal,claimed=game.claimed.includes(t.id);
+
+  if($("prog"+t.id)){
+   $("prog"+t.id).textContent=formatNumber(Math.min(v,t.goal))+" / "+formatNumber(t.goal);
+  }
+
+  if($("taskBtn"+t.id)){
+   $("taskBtn"+t.id).disabled=!done||claimed;
+   $("taskBtn"+t.id).textContent=claimed?"Получено":formatNumber(t.reward);
+   $("task"+t.id).classList.toggle("done",done&&!claimed);
+  }
+ });
+}
+
+function claimTask(id){
+ let t=tasks.find(x=>x.id===id);
+ if(!t||game.claimed.includes(id))return;
+
+ let v=t.type==="clicks"?game.clicks:game.earned;
+ if(v>=t.goal){
+  game.balance+=t.reward;
+  game.claimed.push(id);
+  update();
+ }
+}
+
+$("hamster").addEventListener("pointerdown",e=>{
+ e.preventDefault();
+ if(game.energy<1)return;
+
+ game.energy--;
+ let r=getClickReward();
+ game.balance+=r;
+ game.earned+=r;
+ game.clicks++;
+
+ let p=document.createElement("div");
+ p.className="popup";
+ p.textContent="+"+formatNumber(r);
+ p.style.left=e.clientX+"px";
+ p.style.top=e.clientY+"px";
+ document.body.append(p);
+ setTimeout(()=>p.remove(),600);
+
+ $("hamster").classList.add("pressed");
+ update();
+});
+
+window.addEventListener("pointerup",()=>$("hamster").classList.remove("pressed"));
+
+$("buyClick").onclick=()=>{
+ if(game.balance<clickCost)return;
+ game.balance-=clickCost;
+ game.clickPower++;
+ game.clickLevel++;
+ clickCost=Math.ceil(clickCost*1.03);
+ update();
+};
+
+$("buyEnergy").onclick=()=>{
+ if(game.balance<energyCost)return;
+ game.balance-=energyCost;
+ game.maxEnergy+=100;
+ game.energy=game.maxEnergy;
+ game.energyLevel++;
+ energyCost=Math.ceil(energyCost*1.03);
+ update();
+};
+
+$("buyIncome").onclick=()=>{
+ if(game.balance<incomeCost)return;
+ game.balance-=incomeCost;
+ game.income++;
+ game.incomeLevel++;
+ incomeCost=Math.ceil(incomeCost*1.03);
+ update();
+};
+
+setInterval(()=>{
+ if(document.hidden)return;
+
+ if(game.energy<game.maxEnergy){
+  game.energy=Math.min(game.maxEnergy,game.energy+15);
+ }
+
+ if(game.income){
+  let m=activeEvent?.type==="income"?2:activeEvent?.type==="mega"?5:1;
+  let r=game.income*incomeMult*m;
+  game.balance+=r;
+  game.earned+=r;
+ }
+
+ update();
+},1000);
+
+setInterval(save,5000);
+window.addEventListener("pagehide",save);
+
+let bonus=null;
+
+setInterval(()=>{
+ if(document.hidden||bonus)return;
+
+ bonus=document.createElement("button");
+ bonus.className="bonus-coin";
+ bonus.textContent="🪙";
+ bonus.style.left=Math.max(5,Math.random()*(innerWidth-55))+"px";
+ bonus.style.top=Math.max(70,Math.random()*(innerHeight-150))+"px";
+ document.body.append(bonus);
+
+ bonus.onclick=()=>{
+  let reward=Math.floor(game.balance*.1);
+  game.balance+=reward;
+  game.earned+=reward;
+  bonus.remove();
+  bonus=null;
+  update();
+ };
+
+ setTimeout(()=>{
+  if(bonus){
+   bonus.remove();
+   bonus=null;
+  }
+ },7000);
+},60000);
+
+function updateRoulette(){
+ let ready=Date.now()-Number(game.rouletteAt||0)>=86400000;
+ $("spinButton").disabled=!ready;
+ $("spinButton").textContent=ready?"🎡 Крутить бесплатно":"⏳ Попробуй позже";
+
+ if(!ready){
+  let left=86400000-(Date.now()-game.rouletteAt);
+  $("rouletteResult").textContent="Следующий спин через "+Math.ceil(left/3600000)+" ч.";
+ }
+}
+
+function spinRoulette(){
+ if(Date.now()-Number(game.rouletteAt||0)<86400000)return;
+
+ game.rouletteAt=Date.now();
+ let r=Math.random(),prize;
+
+ if(r<.40)prize={name:"1 000 монет",coins:1000};
+ else if(r<.68)prize={name:"10 000 монет",coins:10000};
+ else if(r<.83)prize={name:"100 000 монет",coins:100000};
+ else if(r<.88)prize={name:"1 000 000 монет",coins:1000000};
+ else if(r<.98)prize={name:"Полная энергия",energy:1};
+ else prize={name:"Особый приз: +5 000 000",coins:5000000};
+
+ if(prize.coins){
+  game.balance+=prize.coins;
+  game.earned+=prize.coins;
+ }
+
+ if(prize.energy)game.energy=game.maxEnergy;
+
+ $("rouletteResult").textContent="🎉 Выпало: "+prize.name;
+ update();
+}
+
+$("secretLevel").onclick=()=>{
+ window.starCount=(window.starCount||0)+1;
+ clearTimeout(window.starTimer);
+ window.starTimer=setTimeout(()=>window.starCount=0,1800);
+
+ if(window.starCount>=6){
+  window.starCount=0;
+  $("adminPassword").value="";
+  $("adminLoginStatus").textContent="";
+  $("adminLogin").classList.add("active");
+ }
+};
+
+async function checkAdminPassword(){
+ if(!uid)return $("adminLoginStatus").textContent="Firebase ещё подключается";
+ if(uid!==ADMIN_UID)return $("adminLoginStatus").textContent="Нет прав администратора для этого Firebase UID.";
+ if($("adminPassword").value!==ADMIN_PASSWORD)return $("adminLoginStatus").textContent="Неверный пароль.";
+
+ isAdmin=true;
+ adminUnlocked=true;
+ closeModal("adminLogin");
+ $("adminPanel").classList.add("active");
+}
+
+function adminLogout(){
+ adminUnlocked=false;
+ isAdmin=false;
+ closeModal("adminPanel");
+}
+
+function requireAdmin(){
+ if(!adminUnlocked||uid!==ADMIN_UID){
+  alert("Нет доступа");
+  return false;
+ }
+ return true;
+}
+
+function adminAddCoins(){
+ if(!requireAdmin())return;
+ let n=Number(prompt("Сколько монет выдать?"));
+ if(n>0&&Number.isFinite(n)){
+  game.balance+=n;
+  game.earned+=n;
+  update();
+ }
+}
+
+function adminSetClickMultiplier(){
+ if(!requireAdmin())return;
+ let n=Number(prompt("Множитель клика от 0.1 до 100000","10"));
+ if(n>=.1&&n<=100000){
+  clickMult=n;
+  update();
+ }
+}
+
+function adminRestoreEnergy(){
+ if(!requireAdmin())return;
+ game.energy=game.maxEnergy;
+ update();
+}
+
+function startGlobalEvent(){
+ if(!requireAdmin())return;
+
+ let type=$("eventType").value;
+ let durations={
+  golden:300000,
+  super:180000,
+  rain:0,
+  income:600000,
+  rainbow:300000,
+  mega:600000
+ };
+
+ let event={
+  type,
+  startedAt:Date.now(),
+  endsAt:Date.now()+durations[type],
+  by:uid
+ };
+
+ if(type==="rain"){
+  event.endsAt=Date.now()+60000;
+  event.reward=500000;
+ }
+
+ db.ref("adminAbuse/current").set(event)
+  .then(()=>$("adminStatus").textContent="Событие запущено: "+type)
+  .catch(e=>$("adminStatus").textContent=e.message);
+}
+
+function stopGlobalEvent(){
+ if(!requireAdmin())return;
+ db.ref("adminAbuse/current").remove();
+ $("adminStatus").textContent="Событие остановлено";
+}
+
+function sendAnnouncement(){
+ if(!requireAdmin())return;
+ let text=$("announcementInput").value.trim();
+
+ if(text){
+  db.ref("adminAbuse/announcement").set({
+   text,
+   at:Date.now(),
+   by:uid
+  }).then(()=>$("adminStatus").textContent="Объявление опубликовано");
+ }
+}
+
+function adminGrantToUid(){
+ if(!requireAdmin())return;
+
+ let target=prompt("UID игрока");
+ let amount=Number(prompt("Сколько монет выдать?"));
+
+ if(!target||!Number.isFinite(amount)||amount<=0)return;
+
+ db.ref("adminAbuse/grants/"+target).push({
+  amount,
+  at:Date.now(),
+  by:uid
+ }).then(()=>$("adminStatus").textContent="Награда отправлена UID: "+target);
+}
+
+function listenGlobal(){
+ db.ref("adminAbuse/current").on("value",snap=>{
+  activeEvent=snap.val();
+
+  if(activeEvent&&activeEvent.endsAt<Date.now()){
+   activeEvent=null;
+   $("eventBanner").style.display="none";
+   return;
+  }
+
+  if(activeEvent){
+   let labels={
+    golden:"🌟 Golden Hour: ×2 монеты за клик",
+    super:"⚡ Super Click: ×3 сила клика",
+    rain:"🎁 Gift Rain: подарок игрокам",
+    income:"🏭 Crazy Income: ×2 доход",
+    rainbow:"🌈 Rainbow Event: случайные награды",
+    mega:"🚀 MEGA EVENT: усиленный режим"
+   };
+
+   $("eventBanner").textContent=labels[activeEvent.type]||"Глобальное событие";
+   $("eventBanner").style.display="block";
+
+   if(activeEvent.type==="rain"&&activeEvent.reward&&!localStorage.getItem("rain_"+activeEvent.startedAt)){
+    game.balance+=Number(activeEvent.reward);
+    game.earned+=Number(activeEvent.reward);
+    localStorage.setItem("rain_"+activeEvent.startedAt,"1");
+    update();
+   }
+
+   update();
+  }
+ });
+
+ db.ref("adminAbuse/announcement").on("value",s=>{
+  let a=s.val();
+  if(a?.text&&Number(a.at)>Number(localStorage.getItem("lastAnnouncement")||0)){
+   alert("📢 "+a.text);
+   localStorage.setItem("lastAnnouncement",a.at);
+  }
+ });
+}
+
+function loadLeaderboard(){
+ db.ref("players").orderByChild("balance").limitToLast(50).once("value")
+  .then(s=>{
+   let rows=[];
+   s.forEach(x=>rows.push({uid:x.key,...x.val()}));
+   rows.sort((a,b)=>(b.balance||0)-(a.balance||0));
+
+   $("leaderboardList").innerHTML=rows.slice(0,50).map((p,i)=>
+    `<div class="upgrade"><b>${i+1}. ${p.name||"Игрок"}</b><strong>🪙 ${formatNumber(p.balance||0)}</strong></div>`
+   ).join("")||'<div class="upgrade">Пока нет игроков</div>';
+  })
+  .catch(e=>$("leaderboardList").textContent="Ошибка загрузки: "+e.message);
+}
+
+async function bootFirebase(){
+ try{
+  let cred=await auth.signInAnonymously();
+  uid=cred.user.uid;
+  $("myUid").textContent=uid;
+
+  await db.ref("players/"+uid).once("value").then(s=>{
+   let cloud=s.val();
+   if(cloud&&cloud.gameData){
+    game={...defaults,...cloud.gameData};
+    update();
+   }else{
+    syncPlayer();
+   }
+  });
+
+  syncPlayer();
+  listenGlobal();
+
+  db.ref("adminAbuse/grants/"+uid).on("child_added",s=>{
+   let grant=s.val(),key="grant_"+s.key;
+
+   if(grant&&!localStorage.getItem(key)){
+    game.balance+=Number(grant.amount)||0;
+    game.earned+=Number(grant.amount)||0;
+    localStorage.setItem(key,"1");
+    update();
+   }
+  });
+
+  setInterval(syncPlayer,15000);
+
+ }catch(e){
+  console.error(e);
+  $("myUid").textContent="Ошибка Firebase: "+e.message;
+ }
+}
+
+createTasks();
+update();
+updateRoulette();
+bootFirebase();
+
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>CLICKER</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
