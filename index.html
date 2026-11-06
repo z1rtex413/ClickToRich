@@ -1,0 +1,2270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>CLICKER</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+body {
+    background: #101225;
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 17px;
+}
+
+.app {
+    max-width: 430px;
+    min-height: 100vh;
+    margin: auto;
+    padding: 20px 18px 100px;
+    background: linear-gradient(180deg,#242944,#151728);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 9px;
+}
+
+.skins-open {
+    width: 58px;
+    height: 58px;
+    padding: 4px;
+    border-radius: 13px;
+    background: linear-gradient(145deg,#8b5cff,#5425c9);
+    color: white;
+    border: 2px solid #b89aff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    box-shadow: 0 0 12px #742cff88;
+}
+
+.skins-open span {
+    font-size: 24px;
+}
+
+.skins-open small {
+    font-size: 11px;
+    color: white;
+}
+
+.skin-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    background: #000a;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+}
+
+.skin-modal.active {
+    display: flex;
+}
+
+.skin-window {
+    width: 100%;
+    max-width: 360px;
+    max-height: 85vh;
+    overflow-y: auto;
+    background: linear-gradient(180deg,#303858,#191d32);
+    border: 2px solid #7852dc;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 0 30px #672cff77;
+}
+
+.skin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.skin-header h2 {
+    font-size: 23px;
+}
+
+.skin-close {
+    width: 35px;
+    height: 35px;
+    padding: 0;
+    font-size: 21px;
+    background: #484d69;
+    color: white;
+}
+
+.skin-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px;
+    border-radius: 13px;
+    background: #292f4b;
+    margin-bottom: 10px;
+    border: 2px solid transparent;
+}
+
+.skin-option.selected {
+    border-color: #ffe16a;
+    background: #3b3b59;
+}
+
+.skin-preview {
+    width: 45px;
+    height: 45px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+}
+
+.classic-preview {
+    background: linear-gradient(145deg,#777f99,#343b55);
+}
+
+.fire-preview {
+    background: linear-gradient(145deg,#ff9b35,#d52b19);
+}
+
+.angel-preview {
+    background: linear-gradient(145deg,#ffffff,#8ccfff);
+}
+
+.emerald-preview {
+    background: linear-gradient(145deg,#42ff9b,#087b52);
+}
+
+.diamond-preview {
+    background: linear-gradient(145deg,#b9ffff,#398bff);
+}
+
+.rainbow-preview {
+    background: linear-gradient(145deg,#ff5555,#9b55ff,#42eaff);
+}
+
+.cosmic-preview {
+    background: linear-gradient(145deg,#19104f,#a044ff,#171d55);
+}
+
+.neon-preview {
+    background: linear-gradient(145deg,#00fff0,#a000ff,#ff00a8);
+    box-shadow: 0 0 12px #00fff088;
+}
+
+.skin-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.skin-info strong {
+    display: block;
+    font-size: 14px;
+}
+
+.skin-info small {
+    display: block;
+    color: #b9bfd5;
+    margin-top: 5px;
+    font-size: 11px;
+}
+
+.skin-select {
+    min-width: 76px;
+    padding: 9px 5px;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.click-effect {
+    position: fixed;
+    pointer-events: none;
+    z-index: 300;
+    font-size: 26px;
+    animation: clickEffectAnimation .75s ease-out forwards;
+    will-change: transform, opacity;
+}
+
+@keyframes clickEffectAnimation {
+    0% {
+        opacity: 1;
+        transform: translate(-50%,-50%) scale(.4) rotate(0deg);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%,-80%) scale(1.4) rotate(25deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%,-150%) scale(.5) rotate(70deg);
+    }
+}
+
+.click-ring {
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 299;
+    transform: translate(-50%,-50%);
+    animation: ringAnimation .55s ease-out forwards;
+    will-change: width, height, opacity;
+}
+
+@keyframes ringAnimation {
+    from {
+        width: 10px;
+        height: 10px;
+        opacity: 1;
+    }
+    to {
+        width: 100px;
+        height: 100px;
+        opacity: 0;
+    }
+}
+
+.effect-hidden {
+    display: none !important;
+}
+
+.level {
+    padding: 9px 13px;
+    border-radius: 20px;
+    background: #343a59;
+    font-size: 15px;
+    white-space: nowrap;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.balance-box {
+    text-align: center;
+    margin: 30px 0 22px;
+}
+
+.balance-title {
+    color: #aeb5d0;
+}
+
+.balance {
+    margin-top: 8px;
+    color: #ffe16a;
+    font-size: 36.5px;
+    font-weight: bold;
+    white-space: nowrap;
+    transition: font-size 0.2s;
+}
+
+.balance.small {
+    font-size: clamp(14px, 5vw, 28px);
+}
+
+.hamster-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto 26px;
+}
+
+.hamster {
+    width: min(78vw,310px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 6px solid #692bff;
+    background: #00113e;
+    box-shadow: 0 0 20px #742cff,
+                0 0 40px #4c20ff99;
+    touch-action: none;
+    cursor: pointer;
+    transition: transform .06s;
+}
+
+.hamster.pressed {
+    transform: scale(.96);
+}
+
+.stats {
+    display: flex;
+    justify-content: space-between;
+    background: #292f4b;
+    padding: 15px 8px;
+    border-radius: 15px;
+    gap: 4px;
+}
+
+.stat {
+    text-align: center;
+    min-width: 0;
+    flex: 1;
+}
+
+.stat small {
+    display: block;
+    color: #aeb5d0;
+    margin-bottom: 7px;
+    font-size: 12px;
+}
+
+.stat strong {
+    display: block;
+    font-size: clamp(13px, 3.5vw, 17px);
+    overflow-wrap: anywhere;
+}
+
+.energy-box {
+    margin: 20px 0;
+}
+
+.energy-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 9px;
+}
+
+.energy-bar {
+    height: 13px;
+    background: #353b59;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.energy-fill {
+    height: 100%;
+    background: linear-gradient(90deg,#ffca55,#ffe78c);
+    transition: width .2s;
+}
+
+.section-title {
+    font-size: 23px;
+    margin: 25px 0 15px;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+.upgrade {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #292f4b;
+    padding: 14px;
+    border-radius: 15px;
+    margin-bottom: 12px;
+    gap: 10px;
+}
+
+.upgrade-icon {
+    font-size: 29px;
+}
+
+.upgrade small {
+    display: block;
+    color: #aeb5d0;
+    margin-top: 5px;
+}
+
+button {
+    border: none;
+    border-radius: 10px;
+    padding: 11px 12px;
+    background: #f8d45b;
+    color: #27263b;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:disabled {
+    background: #666b80;
+    color: white;
+}
+
+button:active {
+    transform: scale(.96);
+}
+
+.nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    display: flex;
+    justify-content: space-around;
+    padding: 13px 4px;
+    background: #20243a;
+    z-index: 50;
+}
+
+.nav-item {
+    text-align: center;
+    color: #b3bad2;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.nav-item span {
+    display: block;
+    font-size: 23px;
+    margin-bottom: 4px;
+}
+
+.popup {
+    position: fixed;
+    pointer-events: none;
+    color: #ffe16a;
+    font-size: 24px;
+    font-weight: bold;
+    animation: rise .55s forwards;
+    z-index: 100;
+}
+
+@keyframes rise {
+    to {
+        opacity: 0;
+        transform: translateY(-60px);
+    }
+}
+
+.task-item {
+    position: relative;
+}
+
+.task-item.task-completed::after {
+    content: "";
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #ff3030;
+    box-shadow: 0 0 8px #ff3030;
+    z-index: 5;
+}
+
+.bonus-coin {
+    position: fixed;
+    z-index: 200;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    background: linear-gradient(145deg,#ffe98a,#ffae00);
+    border: 3px solid #fff0a8;
+    box-shadow: 0 0 12px #ffdb45,
+                0 0 25px #ffb70099;
+    cursor: pointer;
+    padding: 0;
+    transition: left 1.4s linear, top 1.4s linear;
+    animation: coinAppear .4s ease-out;
+}
+
+@keyframes coinAppear {
+    from {
+        opacity: 0;
+        transform: scale(.3);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.bonus-reward {
+    position: fixed;
+    z-index: 210;
+    pointer-events: none;
+    color: #ffe16a;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 0 2px 5px #000, 0 0 10px #ffb700;
+    white-space: nowrap;
+    animation: bonusRewardAnimation 1.1s ease-out forwards;
+}
+
+@keyframes bonusRewardAnimation {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, 0) scale(.5);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -15px) scale(1.2);
+    }
+    70% {
+        opacity: 1;
+        transform: translate(-50%, -45px) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -65px) scale(.9);
+    }
+}
+
+/* ADMIN ABUSE */
+
+.admin-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #000c;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+}
+
+.admin-modal.active {
+    display: flex;
+}
+
+.admin-window {
+    width: 100%;
+    max-width: 360px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 20px;
+    border-radius: 20px;
+    background: linear-gradient(180deg,#3b176b,#17152e);
+    border: 2px solid #bd55ff;
+    box-shadow: 0 0 30px #a000ff99;
+}
+
+.admin-window h2 {
+    color: #e7aaff;
+    margin-bottom: 15px;
+}
+
+.admin-window input {
+    width: 100%;
+    padding: 13px;
+    border-radius: 10px;
+    border: 2px solid #a64dff;
+    background: #17152e;
+    color: white;
+    font-size: 16px;
+    margin: 10px 0;
+    user-select: text;
+}
+
+.admin-window button {
+    width: 100%;
+    margin-top: 9px;
+    padding: 13px;
+    background: linear-gradient(90deg,#a000ff,#ed35d6);
+    color: white;
+}
+
+.admin-window button:disabled {
+    opacity: .5;
+}
+
+.admin-close {
+    background: #45415e !important;
+}
+
+.admin-status {
+    color: #aaffc9;
+    margin: 10px 0;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="header">
+    <div class="brand">
+        <div class="logo">CLICKER</div>
+
+        <button class="skins-open" onclick="openSkins()">
+            <span>🎨</span>
+            <small>СКИНЫ</small>
+        </button>
+    </div>
+
+    <div class="level" id="secretLevel">
+        ⭐ Ур. <span id="level">1</span>
+    </div>
+</header>
+
+<section id="home" class="page active">
+
+    <div class="balance-box">
+        <div class="balance-title">ТВОЙ БАЛАНС</div>
+
+        <div class="balance" id="balanceBox">
+            🪙 <span id="balance">0</span>
+        </div>
+    </div>
+
+    <div class="hamster-wrap">
+        <div class="hamster" id="hamster"></div>
+    </div>
+
+    <div class="stats">
+
+        <div class="stat">
+            <small>За клик</small>
+            <strong id="perClick">+1</strong>
+        </div>
+
+        <div class="stat">
+            <small>Доход/сек</small>
+            <strong id="income">0</strong>
+        </div>
+
+        <div class="stat">
+            <small>Клики</small>
+            <strong id="clicks">0</strong>
+        </div>
+
+    </div>
+
+    <div class="energy-box">
+
+        <div class="energy-info">
+            <strong>⚡ Энергия</strong>
+
+            <strong>
+                <span id="energy">1000</span>/
+                <span id="maxEnergy">1000</span>
+            </strong>
+        </div>
+
+        <div class="energy-bar">
+            <div class="energy-fill" id="energyFill"></div>
+        </div>
+
+    </div>
+
+</section>
+
+<section id="shop" class="page">
+
+    <h2 class="section-title">🚀 Улучшения</h2>
+
+    <div class="upgrade">
+        <div>
+            <div class="upgrade-icon">👆</div>
+            <strong>Сильный палец</strong>
+            <small>Уровень: <span id="clickLevel">1</span></small>
+        </div>
+
+        <button id="buyClick">
+            🪙 <span id="clickCost">100</span>
+        </button>
+    </div>
+
+    <div class="upgrade">
+        <div>
+            <div class="upgrade-icon">⚡</div>
+            <strong>Больше энергии</strong>
+            <small>Уровень: <span id="energyLevel">1</span></small>
+        </div>
+
+        <button id="buyEnergy">
+            🪙 <span id="energyCost">200</span>
+        </button>
+    </div>
+
+    <div class="upgrade">
+        <div>
+            <div class="upgrade-icon">🏭</div>
+            <strong>Автоматический доход</strong>
+            <small>Уровень: <span id="incomeLevel">0</span></small>
+            <small>+1 монета в секунду за покупку</small>
+        </div>
+
+        <button id="buyIncome">
+            🪙 <span id="incomeCost">500</span>
+        </button>
+    </div>
+
+</section>
+
+<section id="tasks" class="page">
+    <h2 class="section-title">🎯 Задания</h2>
+    <div id="tasksContainer"></div>
+</section>
+
+<section id="friends" class="page">
+    <h2 class="section-title">👥 Друзья</h2>
+
+    <div class="upgrade">
+        Приглашай друзей!
+    </div>
+</section>
+
+</div>
+
+<!-- ОКНО СКИНОВ -->
+
+<div class="skin-modal" id="skinModal" onclick="closeSkinsOutside(event)">
+
+    <div class="skin-window">
+
+        <div class="skin-header">
+            <h2>🎨 Скины кликов</h2>
+            <button class="skin-close" onclick="closeSkins()">✕</button>
+        </div>
+
+        <div class="skin-option" id="skin-classic">
+            <div class="skin-preview classic-preview">👆</div>
+            <div class="skin-info">
+                <strong>Обычный</strong>
+                <small>Бесплатно<br>1x к клику</small>
+            </div>
+            <button class="skin-select" onclick="selectSkin('classic')">Выбрать</button>
+        </div>
+
+        <div class="skin-option" id="skin-emerald">
+            <div class="skin-preview emerald-preview">💚</div>
+            <div class="skin-info">
+                <strong>Изумрудный</strong>
+                <small>Цена: 10м<br>1.5x к клику</small>
+            </div>
+            <button class="skin-select" onclick="selectSkin('emerald')">Купить</button>
+        </div>
+
+        <div class="skin-option" id="skin-fire">
+            <div class="skin-preview fire-preview">🔥</div>
+            <div class="skin-info">
+                <strong>Огненный</strong>
+                <small>Цена: 20м<br>2x к клику</small>
+            </div>
+            <button class="skin-select" onclick="selectSkin('fire')">Купить</button>
+        </div>
+
+        <div class="skin-option" id="skin-diamond">
+            <div class="skin-preview diamond-preview">💎</div>
+            <div class="skin-info">
+                <strong>Алмазный</strong>
+                <small>Цена: 30м<br>2.5x к клику</small>
+            </div>
+            <button class="skin-select" onclick="selectSkin('diamond')">Купить</button>
+        </div>
+
+        <div class="skin-option" id="skin-rainbow">
+            <div class="skin-preview rainbow-preview">🌈</div>
+            <div class="skin-info">
+                <strong>Радужный</strong>
+                <small>Цена: 25м<br>3x к клику</small>
+            </div>
+            <button class="skin-select" onclick="selectSkin('rainbow')">Купить</button>
+        </div>
+
+        <div class="skin-option" id="skin-angel">
+            <div class="skin-preview angel-preview">😇</div>
+            <div class="skin-info">
+                <strong>Ангельский</strong>
+                <small>Цена: 35м<br>3.5x к клику</small>
+            </div>
+            <button class="skin-select" onclick="selectSkin('angel')">Купить</button>
+        </div>
+
+        <div class="skin-option" id="skin-cosmic">
+            <div class="skin-preview cosmic-preview">🌌</div>
+            <div class="skin-info">
+                <strong>Космический</strong>
+                <small>Цена: 45м<br>4x к клику</small>
+            </div>
+            <button class="skin-select" onclick="selectSkin('cosmic')">Купить</button>
+        </div>
+
+        <div class="skin-option" id="skin-neon">
+            <div class="skin-preview neon-preview">💜</div>
+            <div class="skin-info">
+                <strong>Неоновый</strong>
+                <small>Цена: 55м<br>4.5x к клику</small>
+            </div>
+            <button class="skin-select" onclick="selectSkin('neon')">Купить</button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ОКНО ВХОДА ADMIN -->
+
+<div class="admin-modal" id="adminLogin">
+    <div class="admin-window">
+
+        <h2>🔐 Вход администратора</h2>
+
+        <input
+            type="password"
+            id="adminPassword"
+            placeholder="Введи пароль"
+            autocomplete="off"
+        >
+
+        <button onclick="checkAdminPassword()">
+            👑 Войти
+        </button>
+
+        <button class="admin-close" onclick="closeAdminLogin()">
+            Отмена
+        </button>
+
+        <div class="admin-status" id="adminLoginStatus"></div>
+
+    </div>
+</div>
+
+<!-- ADMIN PANEL -->
+
+<div class="admin-modal" id="adminPanel">
+    <div class="admin-window">
+
+        <h2>👑 ADMIN PANEL</h2>
+
+        <div class="admin-status">
+            Добро пожаловать, администратор!
+        </div>
+
+        <button onclick="adminAddCoins()">
+            💰 Выдать монеты
+        </button>
+
+        <button onclick="adminSetClickMultiplier()">
+            ⚡ Изменить множитель кликов
+        </button>
+
+        <button onclick="adminRestoreEnergy()">
+            🔋 Восстановить энергию
+        </button>
+
+        <button onclick="adminGiveSkin()">
+            🎨 Выдать скин
+        </button>
+
+        <button onclick="startAdminAbuse()">
+            🌪️ START ADMIN ABUSE
+        </button>
+
+        <button onclick="stopAdminAbuse()">
+            ⛔ STOP ADMIN ABUSE
+        </button>
+
+        <div class="admin-status" id="adminStatus">
+            Событие не запущено.
+        </div>
+
+        <button class="admin-close" onclick="closeAdminPanel()">
+            Закрыть админку
+        </button>
+
+        <button class="admin-close" onclick="adminLogout()">
+            Выйти из режима администратора
+        </button>
+
+    </div>
+</div>
+
+<nav class="nav">
+
+    <div class="nav-item" onclick="showPage('home')">
+        <span>🏠</span>Главная
+    </div>
+
+    <div class="nav-item" onclick="showPage('shop')">
+        <span>🚀</span>Улучшения
+    </div>
+
+    <div class="nav-item" onclick="showPage('tasks')">
+        <span>🎯</span>Задания
+    </div>
+
+    <div class="nav-item" onclick="showPage('friends')">
+        <span>👥</span>Друзья
+    </div>
+
+</nav>
+
+<script>
+
+// СОХРАНЕНИЕ
+
+const KEY = "hamsterGame";
+
+const defaults = {
+    balance: 0,
+    energy: 1000,
+    maxEnergy: 1000,
+    clickPower: 1,
+    clickLevel: 1,
+    energyLevel: 1,
+    incomeLevel: 0,
+    income: 0,
+    clicks: 0,
+    earned: 0,
+    claimed: [],
+    clickSkin: "classic",
+    ownedSkins: ["classic"],
+    incomeUnitVersion: 2
+};
+
+function loadGame() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(KEY));
+
+        if (!saved) {
+            return {...defaults};
+        }
+
+        const loaded = {...defaults, ...saved};
+
+        if (saved.incomeUnitVersion !== 2) {
+            loaded.income = (Number(saved.income) || 0) / 60;
+            loaded.incomeUnitVersion = 2;
+        }
+
+        if (!Array.isArray(saved.ownedSkins)) {
+            loaded.ownedSkins = ["classic"];
+
+            if (
+                saved.clickSkin &&
+                ["fire", "angel", "emerald", "diamond", "rainbow", "cosmic", "neon"].includes(saved.clickSkin)
+            ) {
+                loaded.ownedSkins.push(saved.clickSkin);
+            }
+        }
+
+        if (!loaded.ownedSkins.includes("classic")) {
+            loaded.ownedSkins.push("classic");
+        }
+
+        if (!loaded.ownedSkins.includes(loaded.clickSkin)) {
+            loaded.clickSkin = "classic";
+        }
+
+        return loaded;
+
+    } catch {
+        return {...defaults};
+    }
+}
+
+let game = loadGame();
+
+
+// СОКРАЩЕНИЕ ЧИСЕЛ
+
+function formatNumber(number) {
+
+    number = Number(number) || 0;
+
+    const abs = Math.abs(number);
+
+    if (abs < 1000) {
+        return number.toLocaleString("ru-RU", {
+            maximumFractionDigits: 2
+        });
+    }
+
+    const units = [
+        {value: 1e12, suffix: "т"},
+        {value: 1e9, suffix: "B"},
+        {value: 1e6, suffix: "м"},
+        {value: 1e3, suffix: "к"}
+    ];
+
+    for (const unit of units) {
+
+        if (abs >= unit.value) {
+
+            const result = number / unit.value;
+
+            return result.toLocaleString("ru-RU", {
+                maximumFractionDigits: result < 100 ? 1 : 0
+            }) + unit.suffix;
+        }
+    }
+
+    return number.toString();
+}
+
+
+// ФОРМАТ ЧИСЕЛ ДЛЯ ЗАДАНИЙ
+
+function formatTaskNumber(number) {
+    return formatNumber(number);
+}
+
+
+// НАСТРОЙКИ СКИНОВ
+
+const skinPrices = {
+    classic: 0,
+    emerald: 10000000,
+    fire: 20000000,
+    rainbow: 25000000,
+    diamond: 30000000,
+    angel: 35000000,
+    cosmic: 45000000,
+    neon: 55000000
+};
+
+const skinMultipliers = {
+    classic: 1,
+    emerald: 1.5,
+    fire: 2,
+    diamond: 2.5,
+    rainbow: 3,
+    angel: 3.5,
+    cosmic: 4,
+    neon: 4.5
+};
+
+
+// ADMIN МНОЖИТЕЛИ
+
+let adminClickMultiplier = 1;
+let adminIncomeMultiplier = 1;
+let adminAbuseTimer = null;
+
+
+function getClickReward() {
+    const multiplier = skinMultipliers[game.clickSkin] || 1;
+
+    return game.clickPower *
+           multiplier *
+           adminClickMultiplier;
+}
+
+function formatClickNumber(number) {
+    return formatNumber(number);
+}
+
+const skinIds = [
+    "classic",
+    "emerald",
+    "fire",
+    "diamond",
+    "rainbow",
+    "angel",
+    "cosmic",
+    "neon"
+];
+
+
+// СКИНЫ КЛИКОВ
+
+function openSkins() {
+    $("skinModal").classList.add("active");
+    updateSkinMenu();
+}
+
+function closeSkins() {
+    $("skinModal").classList.remove("active");
+}
+
+function closeSkinsOutside(event) {
+    if (event.target.id === "skinModal") {
+        closeSkins();
+    }
+}
+
+function selectSkin(skin) {
+
+    if (!skinIds.includes(skin)) return;
+
+    if (game.ownedSkins.includes(skin)) {
+
+        game.clickSkin = skin;
+
+        save();
+        update();
+        updateSkinMenu();
+
+        return;
+    }
+
+    const price = skinPrices[skin];
+
+    if (game.balance < price) {
+        alert(
+            "Недостаточно монет! Нужно: " +
+            formatNumber(price)
+        );
+        return;
+    }
+
+    game.balance -= price;
+
+    game.ownedSkins.push(skin);
+
+    game.clickSkin = skin;
+
+    save();
+    update();
+    updateSkinMenu();
+}
+
+function updateSkinMenu() {
+
+    skinIds.forEach(skin => {
+
+        const option = $("skin-" + skin);
+
+        if (!option) return;
+
+        const button = option.querySelector("button");
+
+        const owned = game.ownedSkins.includes(skin);
+        const selected = game.clickSkin === skin;
+
+        if (selected) {
+
+            option.classList.add("selected");
+
+            button.textContent = "Выбрано";
+            button.disabled = true;
+
+        } else {
+
+            option.classList.remove("selected");
+
+            if (owned) {
+
+                button.textContent = "Выбрать";
+                button.disabled = false;
+
+            } else {
+
+                button.textContent = "Купить";
+                button.disabled = game.balance < skinPrices[skin];
+            }
+        }
+    });
+}
+
+
+// ОПТИМИЗИРОВАННЫЕ ЭФФЕКТЫ КЛИКА
+
+const clickParticlePool = [];
+const clickRingPool = [];
+
+const MAX_PARTICLES = 40;
+const MAX_RINGS = 20;
+
+const effects = {
+
+    fire: {
+        symbols: ["🔥", "🔥", "✨", "💥"],
+        color: "#ff6a24",
+        shadow: "#ff4b18"
+    },
+
+    angel: {
+        symbols: ["✨", "🪽", "☁️", "⭐"],
+        color: "#ffffff",
+        shadow: "#8bdfff"
+    },
+
+    emerald: {
+        symbols: ["💚", "💎", "✳️", "✨"],
+        color: "#38ff9b",
+        shadow: "#00d879"
+    },
+
+    diamond: {
+        symbols: ["💎", "💠", "✨", "❄️"],
+        color: "#75eaff",
+        shadow: "#398bff"
+    },
+
+    rainbow: {
+        symbols: ["🌈", "✨", "💖", "⭐"],
+        color: "#ff70e8",
+        shadow: "#8c4dff"
+    },
+
+    cosmic: {
+        symbols: ["🌌", "🌠", "🪐", "✨"],
+        color: "#a66bff",
+        shadow: "#5425ff"
+    },
+
+    neon: {
+        symbols: ["💜", "⚡", "💠", "✨"],
+        color: "#00fff0",
+        shadow: "#ff00e6"
+    }
+};
+
+
+// Получение свободного элемента из пула
+
+function getFreeEffect(pool, className, maxCount) {
+
+    let element = pool.find(
+        item => item.dataset.active !== "true"
+    );
+
+    if (!element) {
+
+        if (pool.length >= maxCount) {
+            return null;
+        }
+
+        element = document.createElement("div");
+
+        element.className = className + " effect-hidden";
+        element.dataset.active = "false";
+
+        element.addEventListener("animationend", () => {
+
+            element.classList.add("effect-hidden");
+            element.dataset.active = "false";
+
+        });
+
+        document.body.appendChild(element);
+
+        pool.push(element);
+    }
+
+    element.dataset.active = "true";
+
+    element.classList.remove("effect-hidden");
+
+    element.style.animation = "none";
+
+    void element.offsetWidth;
+
+    element.style.animation = "";
+
+    return element;
+}
+
+
+// Создание эффекта клика
+
+function createClickEffect(x, y) {
+
+    if (game.clickSkin === "classic") {
+        return;
+    }
+
+    const effect = effects[game.clickSkin];
+
+    if (!effect) return;
+
+
+    // Частицы
+
+    for (let i = 0; i < 4; i++) {
+
+        const particle = getFreeEffect(
+            clickParticlePool,
+            "click-effect",
+            MAX_PARTICLES
+        );
+
+        if (!particle) continue;
+
+        particle.textContent =
+            effect.symbols[
+                Math.floor(Math.random() * effect.symbols.length)
+            ];
+
+        particle.style.left =
+            (x + (Math.random() - 0.5) * 65) + "px";
+
+        particle.style.top =
+            (y + (Math.random() - 0.5) * 55) + "px";
+
+        particle.style.filter =
+            `drop-shadow(0 0 7px ${effect.shadow})`;
+
+        particle.style.fontSize =
+            (20 + Math.random() * 13) + "px";
+    }
+
+
+    // Кольцо
+
+    const ring = getFreeEffect(
+        clickRingPool,
+        "click-ring",
+        MAX_RINGS
+    );
+
+    if (ring) {
+
+        ring.style.left = x + "px";
+        ring.style.top = y + "px";
+
+        ring.style.border =
+            `3px solid ${effect.color}`;
+
+        ring.style.boxShadow =
+            `0 0 15px ${effect.shadow}`;
+    }
+}
+
+
+// ЦЕНЫ УЛУЧШЕНИЙ
+
+const PRICE_MULTIPLIER = 1.03;
+
+let clickCost = Math.ceil(
+    100 * PRICE_MULTIPLIER ** (game.clickLevel - 1)
+);
+
+let energyCost = Math.ceil(
+    200 * PRICE_MULTIPLIER ** (game.energyLevel - 1)
+);
+
+let incomeCost = Math.ceil(
+    500 * PRICE_MULTIPLIER ** game.incomeLevel
+);
+
+
+// ЗВУК ТАПА
+
+let audioContext = null;
+
+function playTapSound() {
+    try {
+        if (!audioContext) {
+            audioContext = new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+        }
+
+        if (audioContext.state === "suspended") {
+            audioContext.resume();
+        }
+
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        oscillator.type = "sine";
+
+        oscillator.frequency.setValueAtTime(
+            650,
+            audioContext.currentTime
+        );
+
+        oscillator.frequency.exponentialRampToValueAtTime(
+            300,
+            audioContext.currentTime + 0.08
+        );
+
+        gain.gain.setValueAtTime(
+            0.18,
+            audioContext.currentTime
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioContext.currentTime + 0.09
+        );
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.09);
+
+    } catch (error) {
+        console.log("Звук недоступен", error);
+    }
+}
+
+
+// СОХРАНЕНИЕ
+
+function save() {
+    try {
+        localStorage.setItem(KEY, JSON.stringify(game));
+    } catch(e) {
+        console.error("Ошибка сохранения", e);
+    }
+}
+
+
+// ОБНОВЛЕНИЕ
+
+function $(id) {
+    return document.getElementById(id);
+}
+
+function update() {
+
+    const balanceElement = $("balance");
+    const balanceBox = $("balanceBox");
+
+    // ОСНОВНОЙ БАЛАНС ВСЕГДА ПОКАЗЫВАЕТСЯ ПОЛНЫМ ЧИСЛОМ
+
+    const balanceValue = Math.floor(game.balance);
+
+    balanceElement.textContent =
+        balanceValue.toLocaleString("ru-RU");
+
+    if (balanceValue >= 1000000000) {
+        balanceBox.classList.add("small");
+    } else {
+        balanceBox.classList.remove("small");
+    }
+
+    // ЭНЕРГИЯ
+
+    $("energy").textContent = formatNumber(Math.floor(game.energy));
+    $("maxEnergy").textContent = formatNumber(game.maxEnergy);
+
+    $("energyFill").style.width =
+        (game.energy / game.maxEnergy * 100) + "%";
+
+    // ДОХОД ЗА КЛИК
+
+    $("perClick").textContent =
+        "+" + formatClickNumber(getClickReward());
+
+    // ДОХОД В СЕКУНДУ
+
+    $("income").textContent =
+        formatNumber(game.income * adminIncomeMultiplier);
+
+    // КОЛИЧЕСТВО КЛИКОВ
+
+    $("clicks").textContent =
+        formatNumber(game.clicks);
+
+    // УРОВЕНЬ
+
+    $("level").textContent =
+        Math.floor(game.earned / 10000000) + 1;
+
+    $("clickLevel").textContent = formatNumber(game.clickLevel);
+    $("energyLevel").textContent = formatNumber(game.energyLevel);
+    $("incomeLevel").textContent = formatNumber(game.incomeLevel);
+
+    // ЦЕНЫ УЛУЧШЕНИЙ
+
+    $("clickCost").textContent = formatNumber(clickCost);
+    $("energyCost").textContent = formatNumber(energyCost);
+    $("incomeCost").textContent = formatNumber(incomeCost);
+
+    updateTasks();
+    updateSkinMenu();
+
+    save();
+}
+
+
+// ЗАДАНИЯ
+
+const tasks = [
+    {id: 1, title: "🎮 Начинающий игрок", goal: 100, reward: 500, type: "clicks"},
+    {id: 2, title: "🪙 Первый капитал", goal: 1000, reward: 1000},
+    {id: 3, title: "💰 Опытный игрок", goal: 10000, reward: 2000},
+    {id: 4, title: "🏆 Богач", goal: 100000, reward: 10000},
+    {id: 5, title: "💎 Миллионер", goal: 1000000, reward: 100000},
+    {id: 6, title: "👑 Магнат", goal: 10000000, reward: 1000000},
+    {id: 7, title: "🌟 Легенда", goal: 100000000, reward: 10000000},
+    {id: 8, title: "🚀 Миллиардер", goal: 1000000000, reward: 100000000},
+    {id: 9, title: "🌌 Космический магнат", goal: 10000000000, reward: 1000000000},
+    {id: 10, title: "👑 Император монет", goal: 100000000000, reward: 10000000000},
+    {id: 11, title: "🏅 Легенда галактики", goal: 1000000000000, reward: 100000000000},
+    {id: 12, title: "🌠 Повелитель вселенной", goal: 10000000000000, reward: 1000000000000}
+];
+
+function createTasks() {
+
+    const container = $("tasksContainer");
+
+    container.innerHTML = "";
+
+    tasks.forEach(task => {
+
+        const item = document.createElement("div");
+
+        item.className = "upgrade task-item";
+
+        item.innerHTML = `
+            <div>
+                <strong>${task.title}</strong>
+                <small id="taskProgress${task.id}">
+                    0 / ${formatTaskNumber(task.goal)}
+                </small>
+            </div>
+
+            <button id="taskButton${task.id}">
+                ${formatTaskNumber(task.reward)}
+            </button>
+        `;
+
+        container.appendChild(item);
+
+        $("taskButton" + task.id).onclick = () => {
+            claimTask(task.id);
+        };
+    });
+}
+
+function updateTasks() {
+
+    tasks.forEach(task => {
+
+        const currentProgress = task.type === "clicks"
+            ? game.clicks
+            : game.earned;
+
+        const progress = Math.min(
+            Math.floor(currentProgress),
+            task.goal
+        );
+
+        const progressElement = $("taskProgress" + task.id);
+        const button = $("taskButton" + task.id);
+
+        if (!progressElement || !button) return;
+
+        progressElement.textContent =
+            formatTaskNumber(progress) +
+            " / " +
+            formatTaskNumber(task.goal);
+
+        const claimed = game.claimed.includes(task.id);
+        const completed = currentProgress >= task.goal;
+
+        const taskCard = progressElement.closest(".task-item");
+
+        if (completed && !claimed) {
+            taskCard.classList.add("task-completed");
+        } else {
+            taskCard.classList.remove("task-completed");
+        }
+
+        button.disabled = !completed || claimed;
+
+        button.textContent = claimed
+            ? "Получено"
+            : formatTaskNumber(task.reward);
+    });
+}
+
+function claimTask(id) {
+
+    const task = tasks.find(t => t.id === id);
+
+    if (!task) return;
+
+    if (game.claimed.includes(id)) return;
+
+    const currentProgress = task.type === "clicks"
+        ? game.clicks
+        : game.earned;
+
+    if (currentProgress >= task.goal) {
+
+        game.balance += task.reward;
+
+        game.claimed.push(id);
+
+        update();
+    }
+}
+
+
+// СОКРАЩЕНИЕ ЧИСЕЛ ДЛЯ БОНУСА
+
+function formatBonusNumber(number) {
+    return formatNumber(number);
+}
+
+
+// ЛЕТАЮЩАЯ БОНУСНАЯ МОНЕТКА
+
+let bonusCoin = null;
+let bonusMoveInterval = null;
+let bonusDisappearTimeout = null;
+
+function getRandomPosition() {
+
+    const size = 48;
+
+    const maxX = Math.max(5, window.innerWidth - size - 5);
+
+    const maxY = Math.max(
+        70,
+        window.innerHeight - size - 90
+    );
+
+    return {
+        x: Math.random() * maxX,
+        y: Math.random() * maxY
+    };
+}
+
+function moveBonusCoin() {
+
+    if (!bonusCoin || document.hidden) return;
+
+    const position = getRandomPosition();
+
+    bonusCoin.style.left = position.x + "px";
+    bonusCoin.style.top = position.y + "px";
+}
+
+function spawnBonusCoin() {
+
+    if (bonusCoin || document.hidden) return;
+
+    const coin = document.createElement("button");
+
+    coin.className = "bonus-coin";
+    coin.textContent = "🪙";
+    coin.setAttribute("aria-label", "Получить бонусные монеты");
+
+    const startPosition = getRandomPosition();
+
+    coin.style.left = startPosition.x + "px";
+    coin.style.top = startPosition.y + "px";
+
+    document.body.appendChild(coin);
+
+    bonusCoin = coin;
+
+    setTimeout(() => {
+
+        if (bonusCoin !== coin || document.hidden) return;
+
+        moveBonusCoin();
+
+        bonusMoveInterval = setInterval(() => {
+            if (bonusCoin === coin && !document.hidden) {
+                moveBonusCoin();
+            }
+        }, 1400);
+
+    }, 100);
+
+    bonusDisappearTimeout = setTimeout(() => {
+        removeBonusCoin();
+    }, 7000);
+
+    coin.addEventListener("pointerdown", function(e) {
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (bonusCoin !== coin) return;
+
+        collectBonusCoin();
+    });
+}
+
+function removeBonusCoin() {
+
+    if (bonusMoveInterval) {
+        clearInterval(bonusMoveInterval);
+        bonusMoveInterval = null;
+    }
+
+    if (bonusDisappearTimeout) {
+        clearTimeout(bonusDisappearTimeout);
+        bonusDisappearTimeout = null;
+    }
+
+    if (bonusCoin) {
+        bonusCoin.remove();
+        bonusCoin = null;
+    }
+}
+
+function collectBonusCoin() {
+
+    if (!bonusCoin || document.hidden) return;
+
+    const rect = bonusCoin.getBoundingClientRect();
+
+    const centerX = rect.left + rect.width / 2;
+    const topY = rect.top - 5;
+
+    const reward = Math.floor(game.balance * 0.10);
+
+    game.balance += reward;
+    game.earned += reward;
+
+    const rewardText = document.createElement("div");
+
+    rewardText.className = "bonus-reward";
+    rewardText.textContent = "+" + formatBonusNumber(reward);
+
+    rewardText.style.left = centerX + "px";
+    rewardText.style.top = topY + "px";
+
+    document.body.appendChild(rewardText);
+
+    setTimeout(() => {
+        rewardText.remove();
+    }, 1200);
+
+    removeBonusCoin();
+
+    update();
+}
+
+
+// ТАЙМЕР БОНУСНОЙ МОНЕТКИ
+
+let bonusTimer = null;
+
+function startBonusTimer() {
+
+    if (bonusTimer) return;
+
+    bonusTimer = setInterval(() => {
+        if (!document.hidden) {
+            spawnBonusCoin();
+        }
+    }, 60000);
+}
+
+function stopBonusTimer() {
+
+    if (bonusTimer) {
+        clearInterval(bonusTimer);
+        bonusTimer = null;
+    }
+}
+
+
+// НАЖАТИЯ НА КРУГ
+
+const hamster = $("hamster");
+
+hamster.addEventListener("pointerdown", e => {
+
+    e.preventDefault();
+
+    if (document.hidden || game.energy < 1) return;
+
+    playTapSound();
+
+    game.energy--;
+
+    const clickReward = getClickReward();
+
+    game.balance += clickReward;
+    game.earned += clickReward;
+    game.clicks++;
+
+    createClickEffect(e.clientX, e.clientY);
+
+    const popup = document.createElement("div");
+
+    popup.className = "popup";
+    popup.textContent = "+" + formatClickNumber(clickReward);
+    popup.style.left = e.clientX + "px";
+    popup.style.top = e.clientY + "px";
+
+    document.body.appendChild(popup);
+
+    setTimeout(() => popup.remove(), 550);
+
+    hamster.classList.add("pressed");
+
+    update();
+});
+
+window.addEventListener("pointerup", () => {
+    hamster.classList.remove("pressed");
+});
+
+window.addEventListener("pointercancel", () => {
+    hamster.classList.remove("pressed");
+});
+
+
+// ПОКУПКА СИЛЬНОГО ПАЛЬЦА
+
+$("buyClick").onclick = () => {
+
+    if (document.hidden || game.balance < clickCost) return;
+
+    game.balance -= clickCost;
+    game.clickPower++;
+    game.clickLevel++;
+
+    clickCost = Math.ceil(clickCost * PRICE_MULTIPLIER);
+
+    update();
+};
+
+
+// ПОКУПКА ЭНЕРГИИ
+
+$("buyEnergy").onclick = () => {
+
+    if (document.hidden || game.balance < energyCost) return;
+
+    game.balance -= energyCost;
+
+    game.maxEnergy += 100;
+    game.energy = game.maxEnergy;
+    game.energyLevel++;
+
+    energyCost = Math.ceil(energyCost * PRICE_MULTIPLIER);
+
+    update();
+};
+
+
+// ПОКУПКА АВТОМАТИЧЕСКОГО ДОХОДА
+
+$("buyIncome").onclick = () => {
+
+    if (document.hidden || game.balance < incomeCost) return;
+
+    game.balance -= incomeCost;
+    game.income += 1;
+    game.incomeLevel++;
+
+    incomeCost = Math.ceil(incomeCost * PRICE_MULTIPLIER);
+
+    update();
+};
+
+
+// ПЕРЕКЛЮЧЕНИЕ СТРАНИЦ
+
+function showPage(page) {
+
+    document.querySelectorAll(".page").forEach(p => {
+        p.classList.remove("active");
+    });
+
+    $(page).classList.add("active");
+}
+
+
+// ТАЙМЕРЫ ИГРЫ
+
+let energyTimer = null;
+let incomeTimer = null;
+
+function startGameTimers() {
+
+    if (document.hidden) return;
+
+    if (!energyTimer) {
+        energyTimer = setInterval(() => {
+
+            if (document.hidden) return;
+
+            if (game.energy < game.maxEnergy) {
+
+                game.energy = Math.min(
+                    game.maxEnergy,
+                    game.energy + 15
+                );
+
+                update();
+            }
+
+        }, 1000);
+    }
+
+    if (!incomeTimer) {
+        incomeTimer = setInterval(() => {
+
+            if (document.hidden) return;
+
+            if (game.income > 0) {
+
+                const reward = game.income * adminIncomeMultiplier;
+
+                game.balance += reward;
+                game.earned += reward;
+
+                update();
+            }
+
+        }, 1000);
+    }
+
+    startBonusTimer();
+}
+
+function stopGameTimers() {
+
+    if (energyTimer) {
+        clearInterval(energyTimer);
+        energyTimer = null;
+    }
+
+    if (incomeTimer) {
+        clearInterval(incomeTimer);
+        incomeTimer = null;
+    }
+
+    stopBonusTimer();
+}
+
+
+// ПРИ СКРЫТИИ ВКЛАДКИ ОСТАНАВЛИВАЕМ ДОХОД
+
+document.addEventListener("visibilitychange", () => {
+
+    if (document.hidden) {
+
+        stopGameTimers();
+        removeBonusCoin();
+        save();
+
+    } else {
+
+        startGameTimers();
+        update();
+
+    }
+});
+
+
+// АВТОСОХРАНЕНИЕ
+
+setInterval(() => {
+    save();
+}, 2000);
+
+window.addEventListener("pagehide", save);
+
+
+// ==================================
+//           ADMIN SYSTEM
+// ==================================
+
+// ВАЖНО: пароль находится в коде.
+// Это подходит для локальной игры,
+// но не является защищённой серверной авторизацией.
+
+const ADMIN_PASSWORD = "goshatop670192837465ggpottyy";
+
+let adminUnlocked = false;
+let starTapCount = 0;
+let starTapTimer = null;
+
+
+// СЕКРЕТНЫЙ ВХОД: 5 НАЖАТИЙ НА УРОВЕНЬ
+
+$("secretLevel").addEventListener("click", () => {
+
+    if (adminUnlocked) {
+        $("adminPanel").classList.add("active");
+        return;
+    }
+
+    starTapCount++;
+
+    clearTimeout(starTapTimer);
+
+    starTapTimer = setTimeout(() => {
+        starTapCount = 0;
+    }, 1800);
+
+    if (starTapCount >= 5) {
+
+        starTapCount = 0;
+
+        $("adminPassword").value = "";
+        $("adminLoginStatus").textContent = "";
+
+        $("adminLogin").classList.add("active");
+    }
+});
+
+
+// ПРОВЕРКА ПАРОЛЯ
+
+function checkAdminPassword() {
+
+    const password = $("adminPassword").value;
+
+    if (password === ADMIN_PASSWORD) {
+
+        adminUnlocked = true;
+
+        $("adminLogin").classList.remove("active");
+        $("adminPanel").classList.add("active");
+
+        $("adminStatus").textContent =
+            "✅ Администратор успешно авторизован!";
+
+        $("adminPassword").value = "";
+
+    } else {
+
+        $("adminLoginStatus").textContent =
+            "❌ Неправильный пароль!";
+
+        $("adminPassword").value = "";
+    }
+}
+
+
+// ВХОД ПО ENTER
+
+$("adminPassword").addEventListener("keydown", event => {
+
+    if (event.key === "Enter") {
+        checkAdminPassword();
+    }
+});
+
+
+// ЗАКРЫТИЕ ОКОН
+
+function closeAdminLogin() {
+    $("adminLogin").classList.remove("active");
+    $("adminPassword").value = "";
+}
+
+function closeAdminPanel() {
+    $("adminPanel").classList.remove("active");
+}
+
+
+// ВЫХОД ИЗ АДМИНКИ
+
+function adminLogout() {
+
+    stopAdminAbuse();
+
+    adminUnlocked = false;
+
+    $("adminPanel").classList.remove("active");
+
+    $("adminStatus").textContent =
+        "Администратор вышел.";
+}
+
+
+// ПРОВЕРКА ДОСТУПА
+
+function checkAdminAccess() {
+
+    if (!adminUnlocked) {
+        alert("Нет доступа!");
+        return false;
+    }
+
+    return true;
+}
+
+
+// ВЫДАЧА МОНЕТ
+
+function adminAddCoins() {
+
+    if (!checkAdminAccess()) return;
+
+    const amount = Number(
+        prompt("Сколько монет выдать?")
+    );
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+        alert("Введи положительное число!");
+        return;
+    }
+
+    game.balance += amount;
+    game.earned += amount;
+
+    update();
+
+    $("adminStatus").textContent =
+        "💰 Выдано монет: " + formatNumber(amount);
+}
+
+
+// ИЗМЕНЕНИЕ МНОЖИТЕЛЯ КЛИКОВ
+
+function adminSetClickMultiplier() {
+
+    if (!checkAdminAccess()) return;
+
+    const multiplier = Number(
+        prompt("Введи множитель кликов:", "10")
+    );
+
+    if (!Number.isFinite(multiplier) ||
+        multiplier < 0.1 ||
+        multiplier > 100000) {
+
+        alert("Введи число от 0.1 до 100000!");
+        return;
+    }
+
+    adminClickMultiplier = multiplier;
+
+    update();
+
+    $("adminStatus").textContent =
+        "⚡ Множитель кликов: x" + multiplier;
+}
+
+
+// ВОССТАНОВЛЕНИЕ ЭНЕРГИИ
+
+function adminRestoreEnergy() {
+
+    if (!checkAdminAccess()) return;
+
+    game.energy = game.maxEnergy;
+
+    update();
+
+    $("adminStatus").textContent =
+        "🔋 Энергия полностью восстановлена!";
+}
+
+
+// ВЫДАЧА СКИНА
+
+function adminGiveSkin() {
+
+    if (!checkAdminAccess()) return;
+
+    const skin = prompt(
+        "Введи название скина:\n" +
+        "classic, emerald, fire, diamond,\n" +
+        "rainbow, angel, cosmic, neon"
+    );
+
+    if (!skin || !skinIds.includes(skin)) {
+        alert("Такого скина нет!");
+        return;
+    }
+
+    if (!game.ownedSkins.includes(skin)) {
+        game.ownedSkins.push(skin);
+    }
+
+    game.clickSkin = skin;
+
+    update();
+
+    $("adminStatus").textContent =
+        "🎨 Выдан скин: " + skin;
+}
+
+
+// ЗАПУСК ADMIN ABUSE
+
+function startAdminAbuse() {
+
+    if (!checkAdminAccess()) return;
+
+    if (adminAbuseTimer) {
+        clearInterval(adminAbuseTimer);
+        adminAbuseTimer = null;
+    }
+
+    adminClickMultiplier = 10;
+    adminIncomeMultiplier = 5;
+
+    game.energy = game.maxEnergy;
+
+    let seconds = 60;
+
+    $("adminStatus").textContent =
+        "🌪️ ADMIN ABUSE АКТИВЕН! Осталось 60 секунд.";
+
+    update();
+
+    adminAbuseTimer = setInterval(() => {
+
+        seconds--;
+
+        $("adminStatus").textContent =
+            "🌪️ ADMIN ABUSE! Осталось " + seconds + " сек.";
+
+        if (seconds <= 0) {
+            stopAdminAbuse();
+        }
+
+    }, 1000);
+}
+
+
+// ОСТАНОВКА ADMIN ABUSE
+
+function stopAdminAbuse() {
+
+    if (!adminUnlocked) return;
+
+    if (adminAbuseTimer) {
+        clearInterval(adminAbuseTimer);
+        adminAbuseTimer = null;
+    }
+
+    adminClickMultiplier = 1;
+    adminIncomeMultiplier = 1;
+
+    $("adminStatus").textContent =
+        "⛔ ADMIN ABUSE остановлен.";
+
+    update();
+}
+
+
+// СОЗДАНИЕ ЗАДАНИЙ И ПЕРВОЕ ОБНОВЛЕНИЕ
+
+createTasks();
+update();
+updateSkinMenu();
+
+startGameTimers();
+
+</script>
+
+</body>
+  </html>
