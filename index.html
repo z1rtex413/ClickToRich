@@ -121,9 +121,7 @@ button:active{transform:scale(.96)}
 .admin-status{color:#aaffc9;margin:10px 0;font-size:13px;overflow-wrap:anywhere}
 .invite-button{width:100%;padding:15px;background:linear-gradient(90deg,#8b5cff,#5425c9);border:2px solid #b89aff;color:white;font-size:16px;margin-top:12px}
 .invite-status{text-align:center;color:#aaffc9;font-size:13px;margin-top:12px;min-height:18px}
-
-/* ЛИДЕРБОРД */
-.leaderboard-status{color:#b9bfd5;font-size:13px;margin:10px 0 14px;line-height:1.5}
+.leaderboard-status{color:#b9bfd5;font-size:13px;margin:10px 0 14px;line-height:1.5;overflow-wrap:anywhere}
 .leaderboard-refresh{width:100%;margin-bottom:15px;background:linear-gradient(90deg,#8b5cff,#5425c9);color:white}
 .leaderboard-player{justify-content:flex-start;gap:14px;min-height:65px}
 .leaderboard-rank{width:42px;text-align:center;font-size:19px;flex-shrink:0}
@@ -263,7 +261,7 @@ button:active{transform:scale(.96)}
 <script>
 /* FIREBASE */
 const firebaseConfig = {
-    apiKey: "AIzaSyCgZk60qVgQk9_t2C2DNeVUYuVbz5ZMUY",
+    apiKey: "AIzaSyCgZk60qGkVQkGm9_t2C2DNeVUYuVbz5ZMUY",
     authDomain: "clicker-91693.firebaseapp.com",
     databaseURL: "https://clicker-91693-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "clicker-91693",
@@ -284,9 +282,11 @@ let leaderboardTimer = null;
 let lastPublishedBalance = null;
 let leaderboardLoading = false;
 
-/* АВТОРИЗАЦИЯ И ИМЯ ИГРОКА */
+/* АВТОРИЗАЦИЯ */
 async function initLeaderboardAuth() {
     const status = $("leaderboardStatus");
+
+    status.textContent = "⏳ Подключаемся к Firebase...";
 
     try {
         let user = auth.currentUser;
@@ -296,35 +296,63 @@ async function initLeaderboardAuth() {
             user = credential.user;
         }
 
+        if (!user) {
+            throw new Error("Firebase не вернул пользователя");
+        }
+
         playerUID = user.uid;
 
         if (!playerName) {
-            const enteredName = prompt("Придумай никнейм для лидерборда (до 20 символов):");
-            playerName = (enteredName || "Игрок").trim().slice(0, 20) || "Игрок";
+            const enteredName = prompt(
+                "Придумай никнейм для лидерборда (до 20 символов):"
+            );
+
+            playerName = (enteredName || "Игрок")
+                .trim()
+                .slice(0, 20) || "Игрок";
+
             localStorage.setItem("clickerPlayerName", playerName);
         }
 
-        status.textContent = "✅ Ты подключён к лидерборду как " + playerName;
-        publishLeaderboard();
+        const balance = Math.floor(Number(game.balance) || 0);
+
+        await db.ref("leaderboard/" + playerUID).set({
+            name: playerName,
+            balance: balance,
+            updatedAt: Date.now()
+        });
+
+        lastPublishedBalance = balance;
+
+        status.textContent =
+            "✅ Ты подключён к лидерборду как " + playerName;
+
+        loadLeaderboard();
+
     } catch (error) {
-        console.error("Firebase auth error:", error);
-        status.textContent = "❌ Ошибка подключения. Проверь Firebase Authentication и настройки базы.";
+        console.error("Firebase leaderboard init error:", error);
+
+        status.textContent =
+            "❌ " + (error.code || "Ошибка") +
+            ": " + (error.message || "Неизвестная ошибка");
     }
 }
 
-/* ОТПРАВКА БАЛАНСА С ЗАДЕРЖКОЙ */
+/* ОТПРАВКА БАЛАНСА */
 function publishLeaderboard() {
-    if (!playerUID) return;
+    if (!playerUID || !game) return;
 
     if (leaderboardTimer) return;
 
     const currentBalance = Math.floor(Number(game.balance) || 0);
+
     if (currentBalance === lastPublishedBalance) return;
 
     leaderboardTimer = setTimeout(async () => {
         leaderboardTimer = null;
 
-        const balanceToPublish = Math.floor(Number(game.balance) || 0);
+        const balanceToPublish =
+            Math.floor(Number(game.balance) || 0);
 
         if (balanceToPublish === lastPublishedBalance) return;
 
@@ -337,13 +365,21 @@ function publishLeaderboard() {
 
             lastPublishedBalance = balanceToPublish;
 
-            if (Math.floor(Number(game.balance) || 0) !== balanceToPublish) {
+            if (
+                Math.floor(Number(game.balance) || 0) !==
+                balanceToPublish
+            ) {
                 publishLeaderboard();
             }
+
         } catch (error) {
             console.error("Leaderboard write error:", error);
-            $("leaderboardStatus").textContent = "Не удалось отправить баланс. Проверь правила Firebase.";
+
+            $("leaderboardStatus").textContent =
+                "❌ Ошибка записи: " +
+                (error.code || error.message);
         }
+
     }, 2500);
 }
 
@@ -356,7 +392,7 @@ async function loadLeaderboard() {
     const list = $("leaderboardList");
     const status = $("leaderboardStatus");
 
-    status.textContent = "Загружаем TOP 100...";
+    status.textContent = "⏳ Загружаем TOP 100...";
     list.innerHTML = "";
 
     try {
@@ -379,15 +415,18 @@ async function loadLeaderboard() {
 
         players.sort((a, b) => b.balance - a.balance);
 
-        if (!players.length) {
-            status.textContent = "Пока игроков нет. Стань первым!";
+        if (players.length === 0) {
+            status.textContent =
+                "Пока игроков нет. Стань первым!";
             return;
         }
 
-        status.textContent = "🏆 Игроков в рейтинге: " + players.length;
+        status.textContent =
+            "🏆 Игроков в рейтинге: " + players.length;
 
         players.forEach((player, index) => {
             const row = document.createElement("div");
+
             row.className = "upgrade leaderboard-player";
 
             if (player.uid === playerUID) {
@@ -406,10 +445,16 @@ async function loadLeaderboard() {
             info.className = "leaderboard-player-info";
 
             const name = document.createElement("strong");
-            name.textContent = player.name + (player.uid === playerUID ? " (Ты)" : "");
+
+            name.textContent =
+                player.name +
+                (player.uid === playerUID ? " (Ты)" : "");
 
             const balance = document.createElement("small");
-            balance.textContent = "🪙 " + Math.floor(player.balance).toLocaleString("ru-RU");
+
+            balance.textContent =
+                "🪙 " +
+                Math.floor(player.balance).toLocaleString("ru-RU");
 
             info.appendChild(name);
             info.appendChild(balance);
@@ -422,7 +467,11 @@ async function loadLeaderboard() {
 
     } catch (error) {
         console.error("Leaderboard read error:", error);
-        status.textContent = "❌ Не удалось загрузить рейтинг. Проверь правила базы данных.";
+
+        status.textContent =
+            "❌ Ошибка загрузки: " +
+            (error.code || error.message);
+
     } finally {
         leaderboardLoading = false;
     }
@@ -457,7 +506,7 @@ const circleSkinMultipliers={
     diamond:3,cosmic:3.5,neon:4,angel:4.5
 };
 
-const skinIds=["classic","emerald","fire","rainbow","diamond","cosmic","neon","angel"];
+const skinIds=["classic","emerald","fire","diamond","rainbow","angel","cosmic","neon"];
 
 const skinNames={
     classic:"Обычный",emerald:"Изумрудный",fire:"Огненный",
@@ -1119,10 +1168,7 @@ document.addEventListener("visibilitychange",()=>{
 setInterval(save,2000);
 window.addEventListener("pagehide",save);
 
-/* АДМИН-ПАНЕЛЬ
-   Пароль в HTML не является безопасным способом защиты.
-   Задай новый пароль, но не используй его для важных аккаунтов.
-*/
+/* АДМИН-ПАНЕЛЬ */
 const ADMIN_PASSWORD="CHANGE_THIS_PASSWORD";
 
 let adminUnlocked=false;
