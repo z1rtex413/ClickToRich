@@ -39,6 +39,7 @@ body.home-lock{min-height:100vh;overflow-x:hidden;overflow-y:auto;overscroll-beh
 .angel-preview{background:linear-gradient(145deg,#ffffff,#8ccfff);color:#ffffff}
 .cosmic-preview{background:linear-gradient(145deg,#19104f,#a044ff,#171d55);color:#a66bff}
 .neon-preview{background:linear-gradient(145deg,#00fff0,#a000ff,#ff00a8);color:#00fff0}
+.dragon-preview{background:radial-gradient(circle at 35% 30%,#ffdf65,#e52b10 45%,#270000);color:#ffb52b;border-color:#ffd45c;box-shadow:0 0 12px #ff4b18,0 0 22px #ffb52b}
 .skin-info{flex:1;min-width:0}
 .skin-info strong{display:block;font-size:14px}
 .skin-info small{display:block;color:#b9bfd5;margin-top:5px;font-size:11px}
@@ -59,6 +60,8 @@ body.home-lock{min-height:100vh;overflow-x:hidden;overflow-y:auto;overscroll-beh
 .hamster.skin-angel{background:radial-gradient(circle at 35% 30%,#fff,#c9f0ff 50%,#679fdc);border-color:#fff;box-shadow:0 0 22px #fff,0 0 48px #8bdfff}
 .hamster.skin-cosmic{background:radial-gradient(circle at 35% 30%,#b67bff,#35116f 45%,#090525);border-color:#a66bff;box-shadow:0 0 20px #a66bff,0 0 45px #5425ff}
 .hamster.skin-neon{background:radial-gradient(circle at 35% 30%,#00fff0,#a000ff 50%,#27002d);border-color:#00fff0;box-shadow:0 0 22px #00fff0,0 0 50px #ff00e6}
+.hamster.skin-dragon{background:radial-gradient(circle at 35% 30%,#ffe58a,#ed4a13 35%,#760900 65%,#170000);border-color:#ffd45c;box-shadow:0 0 25px #ff4b18,0 0 50px #ffb52b,0 0 75px #a60000;animation:dragonGlow 2s ease-in-out infinite alternate}
+@keyframes dragonGlow{from{filter:brightness(1);box-shadow:0 0 20px #ff4b18,0 0 40px #ffb52b}to{filter:brightness(1.25);box-shadow:0 0 30px #ff4b18,0 0 60px #ffb52b,0 0 85px #a60000}}
 .stats{display:flex;justify-content:space-between;background:#292f4b;padding:15px 8px;border-radius:15px;gap:4px}
 .stat{text-align:center;min-width:0;flex:1}
 .stat small{display:block;color:#aeb5d0;margin-bottom:7px;font-size:12px}
@@ -259,32 +262,36 @@ const skinPrices={
     diamond:250000000,
     cosmic:300000000,
     neon:350000000,
-    angel:400000000
+    angel:400000000,
+    dragon:10000000000
 };
 
 const skinMultipliers={
     classic:1,emerald:1.5,fire:2,rainbow:2.5,
-    diamond:3,cosmic:3.5,neon:4,angel:4.5
+    diamond:3,cosmic:3.5,neon:4,angel:4.5,
+    dragon:10
 };
 
 const circleSkinMultipliers={
     classic:1,emerald:1.5,fire:2,rainbow:2.5,
-    diamond:3,cosmic:3.5,neon:4,angel:4.5
+    diamond:3,cosmic:3.5,neon:4,angel:4.5,
+    dragon:10
 };
 
-const skinIds=["classic","emerald","fire","rainbow","diamond","cosmic","neon","angel"];
+const skinIds=["classic","emerald","fire","rainbow","diamond","cosmic","neon","angel","dragon"];
 
 const skinNames={
     classic:"Обычный",emerald:"Изумрудный",fire:"Огненный",
     diamond:"Алмазный",rainbow:"Радужный",angel:"Ангельский",
-    cosmic:"Космический",neon:"Неоновый"
+    cosmic:"Космический",neon:"Неоновый",dragon:"🐉 DRAGON SOUL"
 };
 
 const skinPreviews={
     classic:"classic-preview",emerald:"emerald-preview",
     fire:"fire-preview",diamond:"diamond-preview",
     rainbow:"rainbow-preview",angel:"angel-preview",
-    cosmic:"cosmic-preview",neon:"neon-preview"
+    cosmic:"cosmic-preview",neon:"neon-preview",
+    dragon:"dragon-preview"
 };
 
 function $(id){return document.getElementById(id)}
@@ -330,7 +337,6 @@ function save(){
     catch(e){console.error("Ошибка сохранения",e)}
 }
 
-/* ЧИСЛА: K, M, B, T, Q, Qi, S, Sep, Oc */
 function formatNumber(number){
     number=Number(number)||0;
     const abs=Math.abs(number);
@@ -357,7 +363,6 @@ function formatNumber(number){
     return number.toString();
 }
 
-/* УРОВНИ ПОКАЗЫВАЮТСЯ ПОЛНОСТЬЮ */
 function formatLevel(number){
     return Math.floor(Number(number)||0).toLocaleString("ru-RU");
 }
@@ -445,14 +450,16 @@ const effects={
     diamond:{symbols:["💎","💠","✨","❄️"],color:"#75eaff",shadow:"#398bff"},
     rainbow:{symbols:["🌈","✨","💖","⭐"],color:"#ff70e8",shadow:"#8c4dff"},
     cosmic:{symbols:["🌌","🌠","🪐","✨"],color:"#a66bff",shadow:"#5425ff"},
-    neon:{symbols:["💜","⚡","💠","✨"],color:"#00fff0",shadow:"#ff00e6"}
+    neon:{symbols:["💜","⚡","💠","✨"],color:"#00fff0",shadow:"#ff00e6"},
+    dragon:{symbols:["🐉","🔥","🐲","✨","💥"],color:"#ffb52b",shadow:"#ff2600"}
 };
 
 function createClickEffect(x,y){
     if(game.clickSkin==="classic")return;
     const effect=effects[game.clickSkin];
     if(!effect)return;
-    for(let i=0;i<4;i++){
+    const count=game.clickSkin==="dragon"?7:4;
+    for(let i=0;i<count;i++){
         const particle=document.createElement("div");
         particle.className="click-effect";
         particle.textContent=effect.symbols[Math.floor(Math.random()*effect.symbols.length)];
@@ -514,9 +521,7 @@ function update(){
     const balanceBox=$("balanceBox");
     const balanceValue=Math.floor(game.balance);
 
-    /* ОСНОВНОЙ БАЛАНС: ПОКАЗЫВАЕТСЯ ПОЛНОСТЬЮ, БЕЗ СОКРАЩЕНИЙ */
     balanceElement.textContent=balanceValue.toLocaleString("ru-RU");
-
     balanceBox.classList.toggle("small",balanceValue>=1000000000);
     $("energy").textContent=formatNumber(Math.floor(game.energy));
     $("maxEnergy").textContent=formatNumber(game.maxEnergy);
@@ -524,8 +529,6 @@ function update(){
     $("perClick").textContent="+"+formatNumber(getClickReward());
     $("income").textContent=formatNumber(game.income*adminIncomeMultiplier);
     $("clicks").textContent=formatNumber(game.clicks);
-
-    /* Первый уровень за 10 000 кликов */
     $("level").textContent=Math.floor(game.clicks/10000)+1;
 
     $("clickLevel").textContent=formatLevel(game.clickLevel);
@@ -784,7 +787,6 @@ function collectBonusCoin(){
     update();
 }
 
-/* БОНУСНАЯ МОНЕТА ПОЯВЛЯЕТСЯ РАЗ В МИНУТУ */
 function startBonusTimer(){
     if(bonusTimer)return;
     bonusTimer=setInterval(()=>{
@@ -1033,7 +1035,7 @@ function adminGiveSkin(){
         alert("Введи click или circle!");
         return;
     }
-    const skin=prompt("Введи название скина:\nclassic, emerald, fire, diamond, rainbow, angel, cosmic, neon");
+    const skin=prompt("Введи название скина:\nclassic, emerald, fire, diamond, rainbow, angel, cosmic, neon, dragon");
     if(!skin||!skinIds.includes(skin)){
         alert("Такого скина нет!");
         return;
@@ -1089,4 +1091,4 @@ startGameTimers();
 updateRouletteTimer();
 </script>
 </body>
-</html>
+    </html>
