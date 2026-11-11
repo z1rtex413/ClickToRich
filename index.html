@@ -261,7 +261,7 @@ button:active{transform:scale(.96)}
 <script>
 /* FIREBASE */
 const firebaseConfig = {
-    apiKey: "AIzaSyCgZk60qGkVQkGm9_t2C2DNeVUYuVbz5ZMUY",
+    apiKey: "AIzaSyCgZkG60vQGkTm9_t2C2DNeVUYuVbz5ZMUY",
     authDomain: "clicker-91693.firebaseapp.com",
     databaseURL: "https://clicker-91693-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "clicker-91693",
@@ -327,7 +327,7 @@ async function initLeaderboardAuth() {
         status.textContent =
             "✅ Ты подключён к лидерборду как " + playerName;
 
-        loadLeaderboard();
+        await loadLeaderboard();
 
     } catch (error) {
         console.error("Firebase leaderboard init error:", error);
@@ -377,7 +377,8 @@ function publishLeaderboard() {
 
             $("leaderboardStatus").textContent =
                 "❌ Ошибка записи: " +
-                (error.code || error.message);
+                (error.code || "unknown") +
+                " — " + (error.message || "Неизвестная ошибка");
         }
 
     }, 2500);
@@ -470,7 +471,8 @@ async function loadLeaderboard() {
 
         status.textContent =
             "❌ Ошибка загрузки: " +
-            (error.code || error.message);
+            (error.code || "unknown") +
+            " — " + (error.message || "Неизвестная ошибка");
 
     } finally {
         leaderboardLoading = false;
